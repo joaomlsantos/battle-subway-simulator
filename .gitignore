@@ -10,3 +10,5 @@ wheels/
 .venv
 
 cache/
+data/
+pokemon-showdown/
