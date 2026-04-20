@@ -109,32 +109,92 @@ Rationale:
 - `sim/prng.ts` — RNG (seed for determinism or enumerate branches)
 - `Dex.mod('gen5')` — always use this, not default Dex
 
-### TS Driver Interface
-A thin stateless TS driver (lives in `pokemon-showdown/` alongside PS source) exposes three calls over stdin/stdout. Python holds the search tree; each TS call takes a serialized state + args and returns a new state + metadata. No session state persists in the driver.
+### Driver Interface
+A thin stateless Node.js driver at [driver/driver.js](driver/driver.js) exposes line-delimited JSON-RPC calls over stdin/stdout. Python client at [src/ps_driver.py](src/ps_driver.py) holds the search tree; each call takes a serialized state + args and returns a new state + metadata. No session state persists in the driver.
 
-**1. `enumerate_turn(state) → action_pairs[]`**
+**1. `start_battle({teams, seed?}) → {state}`** ✓
 
-Returns every legal `(p1_action, p2_action)` pair. Each side's action is a 2-tuple `(slot0, slot1)` since this is Doubles. Per-slot action shapes:
-- `{type:"move", move:"Rock Slide", target:"allAdjacentFoes"}` (spread — target fixed by move)
-- `{type:"move", move:"Sacred Sword", target:"foeSlot0"|"foeSlot1"}` (single-target, enumerated per legal target)
+Builds a fresh `gen5doublescustomgame` battle with normalized `PokemonSet` entries, handles the `teampreview` step automatically, and returns `State.serializeBattle(battle)`.
+
+**2. `execute_turn({state, actions, rng_overrides?}) → {state, rng_events[], choices}`** ✓
+
+Deserializes, applies RNG hooks, runs one turn via `battle.makeChoices(p1Choice, p2Choice)`, reserializes. Actions are a per-side 2-tuple with shapes:
+- `{type:"move", move:"Rock Slide"}` (spread — target inferred from move metadata)
+- `{type:"move", move:"Sacred Sword", target:"foeSlot0"|"foeSlot1"|"allySlot0"|"allySlot1"}`
 - `{type:"switch", to:"Darmanitan"}`
-- `{type:"pass"}` (slot fainted/forced-empty)
+- `{type:"pass"}`
 
-Enumeration filters by legality: Taunt disables status moves, Encore locks in, trapped Pokémon can't switch, etc. PS's `side.chooseMove`/`chooseSwitch` are used as validators per candidate; no "list legal choices" API in PS so we iterate moves × valid targets + switchable team members.
+**3. `damage_range({attacker, defender, move}) → {min, max, defenderHp, accuracy, ohko}`** ✓
 
-**2. `execute_turn(state, actions, rng_overrides?) → {state, rng_events[]}`**
+Builds a throwaway battle with the attacker/defender in slot 0 (filler Ditto in slot 1), forces `battle.randomizer` to roll 0 then roll 15 around calls to `BattleActions.getDamage()`. Skeleton — no spread reduction, no crit variant, no multi-hit handling yet.
 
-Executes one turn deterministically. `rng_overrides` is a list of `{kind, actor, move?, force}` entries that intercept PRNG consultations — unset dimensions fall through to PS's PRNG (or a caller-supplied seed). Supported override kinds: `accuracy`, `crit`, `damage_roll`, `secondary`, `multi_hit`, `flinch`, `speed_tie`, `para_block`, `sleep_wake`, `confusion_self_hit`, `freeze_thaw`.
+**4. `enumerate_turn({state, subway_ai_sides?}) → {requestState, p1_choice_count, p2_choice_count, action_pairs[]}`** ✓
 
-Output `rng_events[]` is an ordered list of **every** RNG consultation PS made, each entry:
+Dispatches on `battle.requestState`:
+- **`'move'`**: per-slot candidates come from `pokemon.getMoveRequestData()` (handles PP=0 / Taunt / Disable / Encore / Choice-lock / semi-lock / trapped / Struggle fallback). Single-target moves fan out to each valid target; spread/self/side moves emit no target arg. Per-side = slot0 × slot1 filtered for same-destination switches.
+- **`'switch'`** (post-KO mid-turn): for each side, reads `side.activeRequest.forceSwitch[]`. Slots with `forceSwitch[i] === true` enumerate bench switch-ins; other slots emit a single `pass`. Sides with no active request contribute `null` (execute_turn skips them in `makeChoices`). Same duplicate-switch-to filter. **Bench-undersupply:** when both slots must switch but fewer bench mons are alive, one slot switches and the other passes; enumerates all valid assignments (required switches = `min(bench_available, force_slot_count)`).
+
+Pair output is `p1_choices × p2_choices` in both cases.
+
+**`subway_ai_sides`** (optional, list of `"p1"`/`"p2"`): for each listed side, strip voluntary switches from that side's move-phase action space. Battle Subway AI has no ConsiderSwitching flag (see [BattleSubwayAI.md](BattleSubwayAI.md)), so voluntary switches are not part of its real action space — pruning here shrinks the adversarial branching factor. Forced post-KO switches are unaffected. Python callers pass `subway_ai_sides=["p2"]` when enumerating for adversarial scoring.
+
+**`execute_turn` in switch phase:** `actions.p1`/`actions.p2` can be `null` for a side with no pending request; `formatSideChoice` returns an empty string and `battle.makeChoices` skips that side.
+
+**Enumeration caveats (deferred):**
+- **Custom legality gates not in `moveSlots.disabled`**: Fake Out / First Impression / Mat Block (turn-1-only after switch-in) — PS enforces these via move `onTry` hooks at execution time, not via the disabled flag. Currently emitted as legal candidates that will fail if chosen.
+- **Action-space explosion**: in a full 4v4 doubles with bench, a side can have ~40+ choices; pair product hits ~1600+. Fine for tree search, but the solver will need to prune rather than materialize all pairs up front.
+
+**5. `best_pair_minimax({state, depth, top_k?, subway_ai_sides?}) → {chosen_pair, scored[], depth, cache_entries}`** ✓
+
+Adversarial minimax search run in-process in the driver. `depth ∈ {1, 2}`; depth-2 uses top-K filtering on p1 actions (default `top_k=5`) with the ply-1 adversarial `b1` fixed to the depth-1 worst-case response (approximation — see [src/evaluator.py](src/evaluator.py) module docstring). Switch phases are transparent: each post-KO switch is evaluated by the value of the resulting move-phase, minimaxed, not counted as a ply. Evaluation is p1 HP-fraction sum − p2 HP-fraction sum; terminal states are ±∞.
+
+In-process per-pair cloning (`JSON.stringify(serializeBattle) → parse → deserializeBattle` — string-round-trip avoids aliasing between clones) avoids a Python/IPC round-trip per branch; roughly **2× faster** than the previous Python-side minimax for the same search. Transposition table keyed on `(state_hash, p1_action_hash, p2_action_hash)` lives in the driver; cleared via `clear_minimax_cache`, inspected via `minimax_cache_stats`.
+
+`scored[]` shape: `{p1, d1, d2, adv_p2}` per entry, sorted by `d2` desc (depth-1 sets `d2 = d1`). Infinities are wire-encoded as `"inf"`/`"-inf"` strings (JSON has no native Infinity); Python [src/evaluator.py](src/evaluator.py) decodes them back to `math.inf`. Python callers use `best_pair_minimax` / `best_pair_minimax_depth2` in [src/evaluator.py](src/evaluator.py), which are thin shims around this RPC.
+
+### RNG Interception
+
+PS has no native "kind" tag on its PRNG consultations — all rolls funnel through three untagged primitives on `battle.prng`: `random(n)`, `randomChance(num, denom)`, `sample(arr)` (plus `shuffle`, which calls `random` internally). Kind is implicit in the call site.
+
+**Architecture:** wrap `battle.prng.random/randomChance/sample/shuffle` directly — a single choke point that catches every consultation. For each call, parse `new Error().stack`, skip our own wrappers and PRNG plumbing frames, and map the first remaining PS frame (e.g. `BattleActions.hitStepAccuracy`) to a semantic `kind` via a `KIND_BY_CALLER` table. For catch-all event-dispatch frames (`Battle.onStart`, `Battle.onBeforeMove`, `Battle.onStallMove`, `Battle.onDamagingHit`), a second disambiguation pass reads `battle.effect.id` (the effect currently being dispatched, e.g. `slp`, `confusion`, `par`, `taunt`, `encore`, `disable`, `attract`) to pick the right kind.
+
+**Mapped kinds (observed):**
+- Move execution: `accuracy` (`BattleActions.hitStepAccuracy`), `crit` (`BattleActions.getDamage`), `damage_roll` (`Battle.randomizer`), `secondary` (`BattleActions.secondaries`, `BattleActions.selfDrops` — same `random(100) < chance` shape; covers self-boost/drop moves like Draco Meteor / Close Combat), `multi_hit` (`BattleActions.hitStepMoveHitLoop`, `BattleActions.tryMoveHit`).
+- Targeting / ordering: `speed_tie` (`Battle.speedSort`), `redirect_target` (`Battle.getTarget`, `Side.randomFoe`), `random_switchable`.
+- Status turn rolls (via `Battle.onBeforeMove` + effect id): `fullpara` (par), `confusion_self_hit` (confusion), `sleep_turn` (slp), `freeze_turn` (frz), `attract_immobilize` (attract).
+- Duration picks (via `Battle.onStart` + effect id): `sleep_duration` (slp), `confusion_duration` (confusion), `taunt_duration` (taunt), `encore_duration` (encore), `disable_duration` (disable).
+- Other event-dispatch frames: `stall` (`Battle.onStallMove` — Protect/Detect decay), `contact_ability` (`Battle.onDamagingHit` — Static/Flame Body/Effect Spore/etc.).
+
+Unknown callers fall through to `kind: "unknown"` with the caller name and effect visible — surfaces new kinds by construction. Coverage verified by [src/probe_rng_kinds.py](src/probe_rng_kinds.py), which stages scenarios for each class and asserts no unknowns remain.
+
+**`rng_events[]` entry shape:**
+```json
+{
+  "kind": "accuracy",
+  "caller": "BattleActions.hitStepAccuracy",
+  "effect": "",
+  "primitive": "randomChance",
+  "args": [110, 100],
+  "outcome": true,
+  "forced": false
+}
 ```
-{kind, actor, move?, p: {outcome: probability, ...}, outcome, forced: bool}
-```
-Degenerate distributions (e.g. 100%-accuracy moves, `p:{hit:1.0, miss:0.0}`) are still reported so Python doesn't need a replica of PS's move metadata to know which branches exist. `forced: true` indicates the outcome came from `rng_overrides`, not a PRNG roll.
+- `primitive` ∈ `random | randomChance | sample | shuffle` — identifies the distribution semantics (randomChance is Bernoulli, random(n) is uniform int [0,n), sample is uniform over array).
+- `args` preserves raw primitive args; Python doesn't need PS metadata to understand the distribution.
+- `effect` is `battle.effect.id` at call time (empty string if no effect is being dispatched). Disambiguates catch-all event frames; also useful diagnostic signal for other kinds.
+- `forced: true` means the outcome came from `rng_overrides`, not the PRNG.
 
-**3. `damage_range(state, attacker, defender, move, options?) → {min, max, ohko, breakdown}`**
+**`rng_overrides[]` entry shape:** `{kind, actor?, move?, force}`. All filters are optional except `kind`. `actor` is `"p1.slot0"`-style (matched against `battle.activePokemon` at call time). `move` is the full-title-case move name (matched against `battle.activeMove.name`).
 
-Wraps `BattleActions.getDamage()` with deterministic min/max rolls (overrides `randomizer` to return roll 0 and roll 15). Output includes `ohko.guaranteed` (= `min >= defenderHp && accuracy == 1.0`) — the key field for the static determinism check. `options.crit: "both"` returns both no-crit and crit variants.
+**Force semantics (currently implemented):**
+| kind | force values |
+|---|---|
+| `damage_roll` | `"min"` (roll 15), `"max"` (roll 0), `0..15` |
+| `accuracy` | `"hit"`, `"miss"` |
+| `crit` | `"crit"`, `"no_crit"` |
+| `secondary` | `"proc"` (roll 0), `"no_proc"` (roll 99), `0..99` |
+
+Deferred: `multi_hit` (needs sample-from-array semantics), `speed_tie` (shuffle forcing), and Bernoulli-style forcing for the remaining classified-but-not-yet-forceable kinds (`fullpara`, `confusion_self_hit`, `sleep_turn`, `freeze_turn`, `attract_immobilize`, `contact_ability`, `stall`) plus duration picks (`sleep_duration`, `confusion_duration`, `taunt_duration`, `encore_duration`, `disable_duration`). Backstop means nothing is silent — unknowns are visible in the event stream and can be mapped iteratively.
 
 ### RNG & Tree Exploration
 `rng_overrides` is the steering wheel for both modes of the classifier:
@@ -145,7 +205,9 @@ Wraps `BattleActions.getDamage()` with deterministic min/max rolls (overrides `r
 Same mechanism, different purpose. The classifier always runs worst-case collapse first; only non-surviving lines trigger the tree exploration.
 
 ### Battle AI
-Battle Subway uses a **scripted, non-adaptive AI** — behavior is documented and deterministic given a board state. No learned opponent model needed.
+Gen 5 trainer AI is rule-based (flag-driven move scoring) and non-adaptive — given the same board state and AI flags, the opponent picks the same action. The general framework (TRY_TO_FAINT, CHECK_BAD_MOVE, CHECK_VIABILITY, etc.) is partially documented from ROM disassembly work, but **a concrete per-trainer-class flag table for Battle Subway trainers has not been located**. Until we have one (either by sourcing a disassembly reference or reverse-engineering empirically), the classifier uses **adversarial minimax** as the opponent model — pessimistic-safe for classification (upper-bounds risk; real `P(win)` ≥ the minimax estimate). Swap to a scripted policy later if/when the AI spec is obtained — this will sharpen `P(win)` on Category 2 matchups and shrink the game tree.
+
+**Pruning from AI behavior (already applied):** BattleSubwayAI.md documents that the Subway AI has no `ConsiderSwitching` flag — it never voluntarily switches, only forced post-KO switches occur. `enumerate_turn` accepts `subway_ai_sides=["p2"]` to strip p2 voluntary switches from the move-phase action space. This is strictly pessimistic-preserving (we are removing actions the adversary will never take) and shrinks the adversarial branching factor meaningfully.
 
 ### Matchup Classification
 Every matchup scenario is classified into one of:
@@ -170,10 +232,12 @@ Every matchup scenario is classified into one of:
 
 ## Phased Roadmap
 1. **Data** ✓ — scraper + validator; 300 trainers in `data/trainers.json`, clean against PS Gen 5 dex
-2. **TS driver skeleton** — stub out `enumerate_turn` / `execute_turn` / `damage_range` over stdin/stdout; validate round-trip serialization against a known state
-3. **Damage calc wiring** — `damage_range` backed by `BattleActions.getDamage()`; validate against known Gen 5 damage outputs from PS's test suite
-4. **Battle simulator PoC** — `execute_turn` with `rng_overrides` support; validate against ~10 representative trainer scenarios end-to-end
-5. **Matchup classifier** — worst-case-collapse first, tree search for uncertain lines; produces (category, P(win), line) per matchup
-6. **Full enumeration** — all trainer pools × draw combinations × 6 lead configs
-7. **Risk report** — win probability per trainer, worst-case matchups, threat Pokémon ranking
-8. *(Later)* Lookup table construction via retrograde analysis / minimax over game tree
+2. **Driver skeleton** ✓ — `start_battle` + `execute_turn` + `damage_range` over stdin/stdout; state round-trip verified across turns
+3. **Damage calc wiring** ✓ — `damage_range` via `BattleActions.getDamage()`; validated vs Smogon (Terrakion Sacred Sword vs 252 HP Scrafty: 92–110)
+4. **RNG interception** ✓ — PRNG-level hooks emit kinded events; forcing implemented for `damage_roll`, `accuracy`, `crit`, `secondary` with actor/move filters
+5. **enumerate_turn** ✓ — legal action enumeration per side; handles `requestState` ∈ (`'move'`, `'switch'`); switch-phase round-trip verified (forced KO → switch enumeration → next turn resumes as `'move'`)
+6. **Broader RNG coverage** — classification ✓ via [src/probe_rng_kinds.py](src/probe_rng_kinds.py) (multi-hit, paralysis, sleep, confusion, contact-ability all classified; `Battle.onStart`/`onBeforeMove`/`onStallMove`/`onDamagingHit` disambiguated via `battle.effect.id`). Forcing for the newly-classified kinds (`multi_hit`, `speed_tie`, status turn rolls, duration picks, `contact_ability`, `stall`) still pending — needed before worst-case collapse can cover them.
+7. **Matchup classifier** — worst-case-collapse first, tree search for uncertain lines; produces (category, P(win), line) per matchup. *In progress:* HP-fraction evaluator + adversarial depth-2 minimax action selector with top-K filtering, JS-side search via `best_pair_minimax` RPC, Subway-AI pruning on p2, switch-phase rollthrough — driving end-to-end rollouts ([src/demo_rollout.py](src/demo_rollout.py), [src/evaluator.py](src/evaluator.py)). Worst-case-collapse proof path and branching-factor-aware deeper search still pending.
+8. **Full enumeration** — all trainer pools × draw combinations × 6 lead configs
+9. **Risk report** — win probability per trainer, worst-case matchups, threat Pokémon ranking
+10. *(Later)* Lookup table construction via retrograde analysis / minimax over game tree

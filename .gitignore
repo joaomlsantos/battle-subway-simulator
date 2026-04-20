@@ -12,3 +12,5 @@ wheels/
 cache/
 data/
 pokemon-showdown/
+
+*.out
