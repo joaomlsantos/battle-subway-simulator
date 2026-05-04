@@ -11,6 +11,8 @@ wheels/
 
 cache/
 data/
+logs/
 pokemon-showdown/
 
 *.out
+*.bin

@@ -1,0 +1,144 @@
+62 74 6C 5F 70 6F 6B 65 70 61 72 61 6D 2E 63 00  -> header string [btl_pokeparam.c]
+00 80 E3 00 00 80 05 00 94 A7 26 02 00 00 00 00 
+5A 62 02 00  -> total exp
+7F 02   -> pokemon species id (terrakion)
+A6 00   -> max hp
+A6 00   -> current hp
+09 01   -> held item
+9A 00   -> ability     
+32 00   -> level?
+81 80 00         
+00 00 00 02 0C 0D 00 00 00          -> [may be related to the pokemon being active on the field]
+B5 00   -> atk
+6E 00   -> def
+52 00   -> spatk
+6F 00   -> spdef
+B0 00   -> speed
+05 01 02 00 
+06      -> atk modifier
+06      -> def modifier
+06      -> spatk modifier
+06      -> spdef modifier
+06      -> speed modifier
+06      -> evasion modifier?
+06      -> accuracy modifier?
+00      -> crit modifier?
+9D 00 10 10 03 00   -> [9D 00: move id (rock slide), 10: current pp, 10: max pp, 03: total pp ups used ]
+9D 00 10 10 03 00 01 00 
+15 02 14 14 00 00   -> [move 2]
+15 02 14 14 00 00 01 00 
+94 01 0F 0F 00 00   -> [move 3]
+94 01 0F 0F 00 00 01 00 
+B6 00 0A 0A 00 00   -> [move 4]
+B6 00 0A 0A 00 00 01 00 
+9A 00   -> ability (again? might be active ability, unsure; but on the other hand there is not a repeated field for the held item)
+28 0A 04 00 00 00 11 00 00 00 00 00 00 00      
+1F 00 44 55 00 00 14 02 00 00 98 E7 26 02 E0 EB 26 02 12 00 4E 19   -> more header stuff (this loops back around, probably should be in the beginning)
+
+
+
+
+Weather
+DeSmuME memory offset: 0x21F63F4 (this seems to be consistent between sessions; battlefield data is possibly always stored here)
+0x21F63F8 -> number of turns remaining for weather
+single-byte
+0x0 - None
+0x1 - Sun
+0x2 - Rain
+0x3 - Hail
+0x4 - Sandstorm
+
+
+field-wide effects
+[4 bytes for pointer, 12-byte skip, 4 bytes for 0x2A (no idea what this means), 12-byte skip, 4 bytes for turn counter]
+
+0x21F6400   -> Trick Room
+0x21F6404   -> Gravity
+0x21F6408   -> Imprison (??? why does this appear here and not in the side-specific effects)
+0x21F640C   -> Water Sport
+0x21F6410   -> Mud Sport
+0x21F6414   -> Wonder Room
+0x21F6418   -> Magic Room
+
+
+
+Trick Room
+when used:
+0x21F6400 -> registered w an offset pointer
+0x21F6420 -> set as 0x2A (no idea what this means)
+0x21F6440 -> turn counter (incremental, starts at 1, after increasing from 4 to 5 everything gets set to 0)
+
+
+Gravity
+when used:
+0x21F6404 -> registered w an offset pointer
+0x21F6424 -> set as 0x2A (no idea what this means)
+0x21F6444 -> turn counter (incremental, starts at 1, after increasing from 4 to 5 everything gets set to 0)
+
+
+Water Sport
+when used:
+0x21F640C -> registered w an offset pointer
+0x21F642C -> set as 0x2A (no idea what this means)
+0x21F644C -> turn counter (incremental, starts at 1, after increasing from 4 to 5 everything gets set to 0)
+
+
+
+Mud Sport
+when used:
+0x21F6410 -> registered w an offset pointer
+0x21F6430 -> set as 0x2A (no idea what this means)
+0x21F6450 -> turn counter (incremental, starts at 1, after increasing from 4 to 5 everything gets set to 0)
+
+
+Wonder Room
+when used:
+0x21F6414 -> registered w an offset pointer
+0x21F6434 -> set as 0x2A (no idea what this means)
+0x21F6454 -> turn counter (incremental, starts at 1, after increasing from 4 to 5 everything gets set to 0)
+
+
+Magic Room
+when used:
+0x21F6418 -> registered w an offset pointer
+0x21F6438 -> set as 0x2A (no idea what this means)
+0x21F6458 -> turn counter (incremental, starts at 1, after increasing from 4 to 5 everything gets set to 0)
+
+
+
+
+
+
+side-specific effects:
+[16 byte string, 4 bytes for pointer, 4 bytes for (????), 4 bytes for turn counter, 4 bytes for active/not active flag]
+
+0x689E7E0   -> Reflect
+0x689E7F0   -> Light Screen
+0x689E800   -> Safeguard
+0x689E810   -> Mist
+0x689E820   -> Tailwind
+0x689E830   -> Lucky Chant
+0x689E840   -> Spikes (set on our side of the field by the opponent)
+0x689E850   -> Toxic Spikes (set on our side of the field by the opponent)
+0x689E860   -> Stealth Rock (set on our side of the field by the opponent)
+0x689E870   -> [Wide Guard? data was set here after using wide guard for just a moment during the turn]
+0x689E880   -> [Quick Guard? data was set here after using quick guard for just a moment during the turn]
+0x689E890   -> Rainbow [Water Pledge + Fire Pledge]
+0x689E8A0   -> Sea Of Fire [Grass Pledge + Fire Pledge] (set on our side of the field by the opponent)
+0x689E8B0   -> Swamp [Grass Pledge + Water Pledge]  (set on our side of the field by the opponent)
+
+
+0x689E8C0   -> Reflect (opponent's side of the field)
+0x689E8D0   -> Light Screen (opponent's side of the field)
+0x689E8E0   -> Safeguard (opponent's side of the field)
+0x689E8F0   -> Mist (opponent's side of the field)
+0x689E900   -> Tailwind (opponent's side of the field)
+0x689E910   -> Lucky Chant (opponent's side of the field)
+0x689E920   -> Spikes (opponent's side of the field)
+0x689E930   -> Toxic Spikes (opponent's side of the field)
+0x689E940   -> Stealth Rock (opponent's side of the field)
+0x689E950   -> [Wide Guard? data was set here after using wide guard for just a moment during the turn]
+0x689E960   -> [Quick Guard? data was set here after using quick guard for just a moment during the turn]
+0x689E970   -> Rainbow [Water Pledge + Fire Pledge] (opponent's side of the field)
+0x689E980   -> Sea Of Fire [Grass Pledge + Fire Pledge] (opponent's side of the field)
+0x689E990   -> Swamp [Grass Pledge + Water Pledge]  (opponent's side of the field)

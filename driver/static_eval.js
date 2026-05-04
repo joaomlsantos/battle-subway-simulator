@@ -110,7 +110,10 @@ function buildSlotSnap(battle, sideIdx, slot) {
         if (stage >= 0) return (2 + stage) / 2;
         return 2 / (2 - stage);
     };
-    const rawSpe = mon.stats ? mon.stats.spe : 0;
+    // PS stores computed stats in `storedStats`; `stats` is undefined.
+    const rawSpe = (mon.storedStats && mon.storedStats.spe)
+        || (mon.stats && mon.stats.spe)
+        || 0;
     const speStage = (mon.boosts && mon.boosts.spe) ? mon.boosts.spe : 0;
     let spe = Math.floor(rawSpe * stageMult(speStage));
 
@@ -188,7 +191,8 @@ function forceDamageRoll(battle, roll) {
  * @param {SlotSnap[]} snaps    - All 4 slot snaps (p1s0, p1s1, p2s0, p2s1)
  * @returns {Map}
  */
-function buildDamageMatrix(battle, snaps) {
+function buildDamageMatrix(battle, snaps, opts) {
+    const assumeHit = !!(opts && opts.assumeHit);
     const matrix = new Map(); // attackerKey → Map(moveName → Map(defenderKey → DamageEntry))
 
     for (const atkSnap of snaps) {
@@ -239,7 +243,8 @@ function buildDamageMatrix(battle, snaps) {
 
                 // Apply item accuracy modifiers.
                 const atkSnapItem = slugify(atkSnap.item);
-                const finalAccuracy = applyAccuracyItem(accuracy, atkSnapItem, moveName);
+                let finalAccuracy = applyAccuracyItem(accuracy, atkSnapItem, moveName);
+                if (assumeHit) finalAccuracy = 1.0;
 
                 // Spread flag: moves that hit multiple adjacent targets get a
                 // 0.75× damage multiplier per hit. PS applies this in the full
@@ -332,9 +337,13 @@ function buildBoardSnap(battle) {
             activeByName[sideIdx][name] = frac;
         }
     }
+    const p1Tailwind = !!(battle.sides[0].sideConditions && battle.sides[0].sideConditions['tailwind']);
+    const p2Tailwind = !!(battle.sides[1].sideConditions && battle.sides[1].sideConditions['tailwind']);
     return {
         p1s0: snaps[0], p1s1: snaps[1], p2s0: snaps[2], p2s1: snaps[3],
         trickRoom,
+        p1Tailwind,
+        p2Tailwind,
         p1PartyAlive: partyAlive[0],
         p2PartyAlive: partyAlive[1],
         p1Bench: benchByKey[0],
@@ -356,8 +365,44 @@ function buildBoardSnap(battle) {
  * @returns {{moveName: string, targetSlot: number}|null}
  */
 
+// Module-level cache: slugify is a pure function of the input string, so
+// results survive across phases/battles. Most calls are repeats of a small
+// set of move names (~50 across all Subway opponents) — caching converts
+// per-call regex+lowercase into a Map.get hit.
+const _slugCache = new Map();
 function slugify(name) {
-    return (name || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (!name) return '';
+    let s = _slugCache.get(name);
+    if (s !== undefined) return s;
+    s = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+    _slugCache.set(name, s);
+    return s;
+}
+
+// Per-turn cache for move properties from battle.dex.moves.get(). Lives on
+// the board snap so it auto-invalidates when buildStaticEvalContext rebuilds
+// at the next phase. Hot path: staticScorePair calls these per pair × per
+// actor, with ~100k+ pairs at depth-2 sharing the same ~10 move names.
+function getMoveProps(board, battle, slug) {
+    let cache = board._moveCache;
+    if (!cache) {
+        cache = new Map();
+        board._moveCache = cache;
+    }
+    let props = cache.get(slug);
+    if (props !== undefined) return props;
+    const mv = battle.dex.moves.get(slug);
+    // hasSecondary: drives Life Orb recoil exemption under Sheer Force. PS dex
+    // entries use either `secondary` (single object) or `secondaries` (array).
+    const hasSecondary = !!(mv && (mv.secondary || (mv.secondaries && mv.secondaries.length)));
+    props = {
+        type: mv && mv.type ? mv.type : '',
+        category: mv && mv.category ? mv.category : '',
+        priority: mv && typeof mv.priority === 'number' ? mv.priority : 0,
+        hasSecondary,
+    };
+    cache.set(slug, props);
+    return props;
 }
 
 function extractMoveTarget(action) {
@@ -381,12 +426,17 @@ function extractMoveTarget(action) {
 // track per-move type. We rely on the damage matrix entry having been built
 // (which implicitly encodes type effectiveness), but for ability triggers
 // we need the move's actual type. Pulled from battle.dex.
-function moveTypeId(battle, moveName) {
+// These thin wrappers route through the per-turn move cache when a board is
+// available. Direct (battle, moveName) callers (tests, exploratory probes)
+// keep working since the cache fallback only activates when board is passed.
+function moveTypeId(battle, moveName, board) {
+    if (board) return getMoveProps(board, battle, moveName).type;
     const mv = battle.dex.moves.get(moveName);
     return mv && mv.type ? mv.type : '';
 }
 
-function moveCategoryPhysical(battle, moveName) {
+function moveCategoryPhysical(battle, moveName, board) {
+    if (board) return getMoveProps(board, battle, moveName).category === 'Physical';
     const mv = battle.dex.moves.get(moveName);
     return mv && mv.category === 'Physical';
 }
@@ -400,13 +450,15 @@ function moveCategoryPhysical(battle, moveName) {
  * @param {Battle} battle  - needed for move category lookup
  * @returns {number}
  */
-function effectivePriority(action, atkSnap, battle) {
+function effectivePriority(action, atkSnap, battle, board) {
     if (!action || action.type !== 'move') return 0;
-    const moveName = (action.move || '').toLowerCase();
-    const base = MOVE_PRIORITY[moveName] || 0;
+    const slug = slugify(action.move);
+    const base = MOVE_PRIORITY[slug] || 0;
     if (atkSnap && atkSnap.prankster) {
-        const moveObj = battle.dex.moves.get(moveName);
-        if (moveObj && moveObj.category === 'Status') return base + 1;
+        const cat = board
+            ? getMoveProps(board, battle, slug).category
+            : (battle.dex.moves.get(slug) && battle.dex.moves.get(slug).category);
+        if (cat === 'Status') return base + 1;
     }
     return base;
 }
@@ -450,7 +502,7 @@ function resolveTurnOrder(p1Actions, p2Actions, board, battle) {
     const addActor = (action, snap, side, slot) => {
         if (!snap || snap.fainted) return;
         if (!action || action.type === 'pass') return;
-        const priority = effectivePriority(action, snap, battle);
+        const priority = effectivePriority(action, snap, battle, board);
         actors.push({ key: snap.key, side, slot, priority, spe: snap.spe, action, snap });
     };
 
@@ -532,6 +584,17 @@ function staticScorePair(matrix, board, pair, battle) {
 
     const fainted = (key) => hp[key] !== undefined && hp[key] <= 0;
 
+    // Focus Sash: a full-HP holder survives a would-be-OHKO at 1 HP. Track
+    // availability per slot — set true at turn start if the active mon holds
+    // Sash and is at full HP; consumed on first proc.
+    const sashLive = {};
+    for (const snap of [board.p1s0, board.p1s1, board.p2s0, board.p2s1]) {
+        if (!snap) continue;
+        if (slugify(snap.item) === 'focussash' && snap.hpFrac >= 1.0 && !switchingTo[snap.key]) {
+            sashLive[snap.key] = true;
+        }
+    }
+
     // Intimidate on switch-in: if a side switches in a mon with Intimidate,
     // the opposing side's active mons lose 1 atk stage for this turn's damage
     // calc. Switches happen before moves (priority = 6), so boost applies to
@@ -587,7 +650,7 @@ function staticScorePair(matrix, board, pair, battle) {
             const allyKey = `${allySide}s${mt.allySlot}`;
             const allySnap = snapByKey[allyKey];
             if (!allySnap || fainted(allyKey)) continue;
-            if (allySnap.ability === 'justified' && moveTypeId(battle, mt.moveName) === 'Dark') {
+            if (allySnap.ability === 'justified' && moveTypeId(battle, mt.moveName, board) === 'Dark') {
                 const partyAlive = allySide === 'p1' ? board.p1PartyAlive : board.p2PartyAlive;
                 const hits = mt.moveName === 'beatup' ? Math.max(1, partyAlive) : 1;
                 atkDelta[allyKey] = (atkDelta[allyKey] || 0) + hits;
@@ -600,7 +663,7 @@ function staticScorePair(matrix, board, pair, battle) {
         const defMap = moveMap.get(mt.moveName);
         if (!defMap) continue;
 
-        const isPhysical = moveCategoryPhysical(battle, mt.moveName);
+        const isPhysical = moveCategoryPhysical(battle, mt.moveName, board);
         const scale = isPhysical ? atkScaleFor(atkKey) : 1;
 
         // Spread-multiplier: any entry in defMap for this move carries isSpread.
@@ -609,6 +672,7 @@ function staticScorePair(matrix, board, pair, battle) {
         const sampleEntry = defMap.values().next().value;
         const spreadMult = (sampleEntry && sampleEntry.isSpread && foeSlotsAlive >= 2) ? 0.75 : 1;
 
+        let connectedAccuracy = 0;
         for (const [defKey, entry] of defMap.entries()) {
             if (mt.foeSlot !== null) {
                 const expected = `${foeSide}s${mt.foeSlot}`;
@@ -629,7 +693,30 @@ function staticScorePair(matrix, board, pair, battle) {
             const defSnap = snapByKey[defKey];
             if (!defSnap) continue;
             const dmgFrac = defSnap.maxhp > 0 ? (rawDmg * hitMult) / defSnap.maxhp : 0;
-            hp[defKey] = Math.max(0, hp[defKey] - dmgFrac);
+            const prevHp = hp[defKey];
+            let newHp = Math.max(0, prevHp - dmgFrac);
+            // Focus Sash: consumed if defender was at full HP and would be KO'd.
+            if (newHp <= 0 && sashLive[defKey] && prevHp >= 1.0) {
+                newHp = 1 / defSnap.maxhp;
+                sashLive[defKey] = false;
+            }
+            hp[defKey] = newHp;
+            if (entry.accuracy > connectedAccuracy) connectedAccuracy = entry.accuracy;
+        }
+
+        // Life Orb recoil: 10% max HP after a damaging move that connects.
+        // Sheer Force exempts iff the move has a secondary effect it suppresses.
+        // Magic Guard prevents recoil entirely. Weight by accuracy so a move
+        // expected to miss doesn't pay full recoil.
+        const attackerSnap = snapByKey[atkKey];
+        if (attackerSnap && connectedAccuracy > 0
+                && slugify(attackerSnap.item) === 'lifeorb') {
+            const ab = attackerSnap.ability;
+            const props = getMoveProps(board, battle, mt.moveName);
+            const sheerForceWaiver = (ab === 'sheerforce' && props.hasSecondary);
+            if (ab !== 'magicguard' && !sheerForceWaiver) {
+                hp[atkKey] = Math.max(0, hp[atkKey] - 0.1 * connectedAccuracy);
+            }
         }
     }
 
@@ -660,7 +747,37 @@ function staticScorePair(matrix, board, pair, battle) {
         }
     }
 
-    return (p1Sum + p1Bench) - (p2Sum + p2Bench);
+    // Side-condition shaping. Tailwind / Trick Room benefits extend past
+    // depth-2 (Tailwind = 4 turns of doubled speed); without a bonus the
+    // search dismisses setup moves as zero-damage. Two contributions:
+    //   - Carry: the score reflects the value of having the condition up at
+    //     the start of this evaluation phase (so depth-2 evals correctly
+    //     reward post-T1 states where Tailwind is now active).
+    //   - Setup: a side that newly sets the condition this turn gets the
+    //     bonus credited at depth-1 (so Tailwind beats a pure damage line of
+    //     similar HP-swing magnitude). Skipped if the condition is already up.
+    const TAILWIND_BONUS = 0.6;
+    const TRICKROOM_BONUS = 0.6;
+    let condBonus = 0;
+    if (board.p1Tailwind) condBonus += TAILWIND_BONUS;
+    if (board.p2Tailwind) condBonus -= TAILWIND_BONUS;
+    if (board.trickRoom) {
+        // TR is symmetric (reverses speed for everyone); its side-asymmetric
+        // value is already captured by resolveTurnOrder. No flat bonus needed.
+    }
+    for (const [actions, sign, alreadyUp, isTrickRoomUp] of [
+        [p1Actions, +1, board.p1Tailwind, board.trickRoom],
+        [p2Actions, -1, board.p2Tailwind, board.trickRoom],
+    ]) {
+        for (const a of actions) {
+            if (!a || a.type !== 'move' || !a.move) continue;
+            const slug = slugify(a.move);
+            if (slug === 'tailwind' && !alreadyUp) condBonus += sign * TAILWIND_BONUS;
+            if (slug === 'trickroom' && !isTrickRoomUp) condBonus += sign * TRICKROOM_BONUS;
+        }
+    }
+
+    return (p1Sum + p1Bench) - (p2Sum + p2Bench) + condBonus;
 }
 
 // ---------------------------------------------------------------------------
@@ -674,7 +791,7 @@ function staticScorePair(matrix, board, pair, battle) {
  * @param {Battle} battle
  * @returns {{ matrix: Map, board: BoardSnap, snaps: SlotSnap[] }}
  */
-function buildStaticEvalContext(battle) {
+function buildStaticEvalContext(battle, opts) {
     const snaps = [
         buildSlotSnap(battle, 0, 0),
         buildSlotSnap(battle, 0, 1),
@@ -683,7 +800,7 @@ function buildStaticEvalContext(battle) {
     ].filter(Boolean);
 
     const board = buildBoardSnap(battle);
-    const matrix = buildDamageMatrix(battle, snaps);
+    const matrix = buildDamageMatrix(battle, snaps, opts);
     return { matrix, board, snaps };
 }
 

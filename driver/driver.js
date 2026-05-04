@@ -18,7 +18,7 @@ const crypto = require('crypto');
 
 const PS_DIST = path.resolve(__dirname, '..', 'pokemon-showdown', 'dist', 'sim');
 const { Battle, Dex } = require(PS_DIST);
-const { buildStaticEvalContext, staticScorePair } = require('./static_eval.js');
+const { buildStaticEvalContext, staticScorePair, NON_DAMAGING } = require('./static_eval.js');
 const { State } = require(path.join(PS_DIST, 'state'));
 
 
@@ -108,8 +108,18 @@ function formatSlotChoice(action, activeMon, side) {
     if (action.type === 'move') {
         if (!activeMon) throw new Error('move action requires a live active pokemon');
         const moveId = Dex.toID(action.move);
-        const moveIdx = activeMon.moves.indexOf(moveId);
-        if (moveIdx < 0) throw new Error(`move ${action.move} (${moveId}) not on ${activeMon.species.name}'s moveset [${activeMon.moves.join(', ')}]`);
+        // Index against the live request, not activeMon.moves: under Encore /
+        // Choice-lock / Struggle fallback, getMoveRequestData() returns a
+        // reduced (or substituted) move list, and PS validates "move N"
+        // against that reduced list. Using activeMon.moves.indexOf would
+        // submit the original-moveset slot, which PS rejects as out-of-bounds
+        // when the request has fewer entries.
+        const reqMoves = activeMon.getMoveRequestData().moves;
+        const moveIdx = reqMoves.findIndex(m => Dex.toID(m.move) === moveId);
+        if (moveIdx < 0) {
+            const visible = reqMoves.map(m => m.move).join(', ');
+            throw new Error(`move ${action.move} (${moveId}) not in ${activeMon.species.name}'s active request [${visible}]`);
+        }
         const tgt = targetToChoiceFragment(action.target);
         return tgt ? `move ${moveIdx + 1} ${tgt}` : `move ${moveIdx + 1}`;
     }
@@ -302,7 +312,16 @@ function installRngHooks(battle, overrides, events) {
             outcome = rollOriginal();
         }
 
-        events.push({ kind, caller, effect: effectId, primitive, args, outcome, forced });
+        // Capture the actor + move at the moment of the roll so logs can group
+        // events by "who did what". Status-turn rolls (fullpara, sleep_turn)
+        // tag actor=mover but move=null since they fire pre-move.
+        const actor = battle.activePokemon ? actorId(battle.activePokemon) : null;
+        const moveName = battle.activeMove && battle.activeMove.name ? battle.activeMove.name : null;
+        const target = battle.activeTarget ? actorId(battle.activeTarget) : null;
+        events.push({
+            kind, caller, effect: effectId, primitive, args, outcome, forced,
+            actor, move: moveName, target,
+        });
         return outcome;
     }
 
@@ -345,6 +364,9 @@ function installRngHooks(battle, overrides, events) {
             args: [`array[${items.length}]`, start, end],
             outcome: { before, after },
             forced: false,
+            actor: battle.activePokemon ? actorId(battle.activePokemon) : null,
+            move: battle.activeMove && battle.activeMove.name ? battle.activeMove.name : null,
+            target: battle.activeTarget ? actorId(battle.activeTarget) : null,
         });
     };
 }
@@ -735,6 +757,7 @@ const _prof = {
     clone_ms: 0,
     apply_ms: 0,
     eval_ms: 0,
+    static_eval_ms: 0,
     pairs_scored: 0,
     cache_hits: 0,
     cache_misses: 0,
@@ -781,9 +804,15 @@ function terminalScore(battle) {
 
 // JSON has no Infinity; encode as strings for wire transport. Python shim
 // parses them back to math.inf. Only applied at the response boundary.
+// NaN normally JSON-encodes as null which then deserializes to Python None
+// and breaks numeric formatting downstream — surface it explicitly so we get
+// a kinded error instead of a confusing TypeError ten frames away.
 function encodeScore(v) {
     if (v === Infinity) return 'inf';
     if (v === -Infinity) return '-inf';
+    if (typeof v === 'number' && Number.isNaN(v)) {
+        throw new Error('encodeScore: NaN score (likely an unguarded division-by-zero or undefined arithmetic in the evaluator)');
+    }
     return v;
 }
 
@@ -845,6 +874,15 @@ function cloneFromJson(snapshotJson) {
     return restoreBattle(JSON.parse(snapshotJson));
 }
 
+// Same contract as cloneFromJson but reuses an already-parsed snapshot via
+// structuredClone — avoids re-running JSON.parse on every clone in hot loops
+// (depth-2 top-K expansion, switch-phase recursion, accuracy-combo expansion).
+// structuredClone gives a fresh object graph so deserializeBattle's ref
+// retention can't leak across siblings.
+function cloneFromParsed(parsed) {
+    return restoreBattle(structuredClone(parsed));
+}
+
 // Score the result of applying `pair` to the battle represented by `snapshotJson`.
 // Cached by (stateHash, p1Hash, p2Hash).
 function scorePairCached(snapshotJson, stateHash, pair) {
@@ -885,10 +923,122 @@ function groupByP1(pairs) {
     return byP1;
 }
 
+// --- Extended scoring (worst-case + probability-weighted expected) ---
+//
+// d2_worst pins all RNG to its worst-for-p1 outcome (p1 misses, rolls min;
+// p2 hits, rolls max). One sim per candidate. Used as the Cat-1 proof signal
+// (CLAUDE.md): if d2_worst > 0, the line wins under all (modeled) RNG.
+//
+// d2_expected enumerates accuracy hit/miss outcomes for moves with acc < 1
+// on either side, weights each outcome by its probability, and sums. Damage
+// rolls stay at mean (the matrix already encodes E[dmg]); crit and secondary
+// pessimization are deferred — accuracy is the dominant outcome flipper.
+
+function _moveAccuracy(battle, moveSlug, item) {
+    const mv = battle.dex.moves.get(moveSlug);
+    if (!mv || mv.accuracy === true) return 1.0;
+    let acc = mv.accuracy / 100;
+    const itemId = (item || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (itemId === 'widelens') acc = Math.min(1.0, acc * 1.1);
+    if (itemId === 'zoomlens') acc = Math.min(1.0, acc * 1.2);
+    return acc;
+}
+
+function buildWorstCaseOverrides(pair) {
+    const out = [];
+    const collect = (actions, side) => {
+        for (let slot = 0; slot < 2; slot++) {
+            const a = actions && actions[slot];
+            if (!a || a.type !== 'move') continue;
+            const actor = `${side}.slot${slot}`;
+            const move = a.move;
+            if (side === 'p1') {
+                // p1 worst case: miss, min damage, no crit on our hits, and
+                // no secondary procs (so flinch/burn/freeze on our attacks
+                // don't help us). Note: this is also optimistic w.r.t. p1
+                // self-drops (e.g. Close Combat -1 def doesn't trigger), but
+                // our fixed team carries no such moves so the bias is fine.
+                out.push({ kind: 'accuracy', actor, move, force: 'miss' });
+                out.push({ kind: 'damage_roll', actor, move, force: 'min' });
+                out.push({ kind: 'crit', actor, move, force: 'no_crit' });
+                out.push({ kind: 'secondary', actor, move, force: 'no_proc' });
+            } else {
+                // p2 worst case: hit, max damage, crit on every hit, and
+                // secondaries proc against us (Rock Slide flinch / Ice Beam
+                // freeze / Thunder para / etc. all land).
+                out.push({ kind: 'accuracy', actor, move, force: 'hit' });
+                out.push({ kind: 'damage_roll', actor, move, force: 'max' });
+                out.push({ kind: 'crit', actor, move, force: 'crit' });
+                out.push({ kind: 'secondary', actor, move, force: 'proc' });
+            }
+        }
+    };
+    collect(pair.p1, 'p1');
+    collect(pair.p2, 'p2');
+    return out;
+}
+
+function identifyAccuracyDimensions(battle, pair) {
+    const dims = [];
+    const collect = (actions, sideIdx, sideName) => {
+        for (let slot = 0; slot < 2; slot++) {
+            const a = actions && actions[slot];
+            if (!a || a.type !== 'move') continue;
+            const mon = battle.sides[sideIdx].active[slot];
+            if (!mon || mon.fainted) continue;
+            const slug = (a.move || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+            const pHit = _moveAccuracy(battle, slug, mon.item);
+            if (pHit < 1.0) {
+                dims.push({ actor: `${sideName}.slot${slot}`, move: a.move, p_hit: pHit });
+            }
+        }
+    };
+    collect(pair.p1, 0, 'p1');
+    collect(pair.p2, 1, 'p2');
+    return dims;
+}
+
+function enumerateAccuracyCombos(dims) {
+    let combos = [{ overrides: [], prob: 1.0 }];
+    for (const d of dims) {
+        const next = [];
+        for (const c of combos) {
+            next.push({
+                overrides: c.overrides.concat([{ kind: 'accuracy', actor: d.actor, move: d.move, force: 'hit' }]),
+                prob: c.prob * d.p_hit,
+            });
+            next.push({
+                overrides: c.overrides.concat([{ kind: 'accuracy', actor: d.actor, move: d.move, force: 'miss' }]),
+                prob: c.prob * (1 - d.p_hit),
+            });
+        }
+        combos = next;
+    }
+    return combos;
+}
+
+// `parsedSnap` is the result of JSON.parse(snapshotJson); the caller parses
+// once and passes the same object across many calls (extended-scoring loop
+// runs O(2^|dims|) calls per candidate pair) — structuredClone here is much
+// cheaper than re-parsing the string each time.
+function evaluatePairWithOverrides(parsedSnap, pair, overrides, subwayAiSet, p2Policy, evalOpts) {
+    const tc = process.hrtime.bigint();
+    const b = cloneFromParsed(parsedSnap);
+    _prof.clone_ms += hrms(tc);
+    const ta = process.hrtime.bigint();
+    if (overrides.length) installRngHooks(b, overrides, []);
+    applyChoicesInPlace(b, pair);
+    _prof.apply_ms += hrms(ta);
+    _prof.pairs_scored++;
+    const t = terminalScore(b);
+    if (t !== null) return t;
+    return movePhaseValueOfBattle(b, subwayAiSet, p2Policy, evalOpts);
+}
+
 // Adversarial minimax value at the next move phase. Switch phases are
 // transparent: for each p1 switch option, minimax over p2 switches, recurse
 // into the resulting move phase. Mirrors evaluator.move_phase_value.
-function movePhaseValueOfBattle(battle, subwayAiSet, p2Policy) {
+function movePhaseValueOfBattle(battle, subwayAiSet, p2Policy, evalOpts) {
     _prof.recurse_calls++;
     const term = terminalScore(battle);
     if (term !== null) return term;
@@ -899,29 +1049,33 @@ function movePhaseValueOfBattle(battle, subwayAiSet, p2Policy) {
     const pairs = enumerateBattlePairs(battle, subwayAiSet, p2Policy);
     if (!pairs.length) return evaluateBattle(battle);
 
-    const { matrix, board } = buildStaticEvalContext(battle);
-
-    const ts = process.hrtime.bigint();
-    const snapshotJson = JSON.stringify(State.serializeBattle(battle));
-    _prof.serialize_ms += hrms(ts);
-
     if (req === 'switch') {
         // Recurse through the switch phase into the next move phase.
         // Alpha-beta: max over p1 of (min over p2). Once inner `worst` drops to
         // or below current `best`, this p1 can't beat best — skip remaining p2s.
+        // Snapshot only built here (skipped on the move-phase branch where it
+        // would be unused — that branch only runs static eval, no clones).
+        const ts = process.hrtime.bigint();
+        const snapshotJson = JSON.stringify(State.serializeBattle(battle));
+        _prof.serialize_ms += hrms(ts);
+        const tp = process.hrtime.bigint();
+        const parsedSnap = JSON.parse(snapshotJson);
+        _prof.clone_ms += hrms(tp);
+
         let best = -Infinity;
         for (const [, p1Pairs] of groupByP1(pairs)) {
             let worst = Infinity;
             for (const pair of p1Pairs) {
                 const tc = process.hrtime.bigint();
-                const b = cloneFromJson(snapshotJson);
+                const b = cloneFromParsed(parsedSnap);
                 _prof.clone_ms += hrms(tc);
                 const ta = process.hrtime.bigint();
+                if (evalOpts && evalOpts.assumeHit) installRngHooks(b, [{ kind: 'accuracy', force: 'hit' }], []);
                 applyChoicesInPlace(b, pair);
                 _prof.apply_ms += hrms(ta);
                 _prof.pairs_scored++;
                 const t = terminalScore(b);
-                const v = t !== null ? t : movePhaseValueOfBattle(b, subwayAiSet, p2Policy, matrix, board);
+                const v = t !== null ? t : movePhaseValueOfBattle(b, subwayAiSet, p2Policy, evalOpts);
                 if (v < worst) worst = v;
                 if (worst <= best) break; // prune: this p1 branch is dominated
             }
@@ -931,18 +1085,40 @@ function movePhaseValueOfBattle(battle, subwayAiSet, p2Policy) {
     }
 
     // Move phase: depth-1 minimax with alpha-beta pruning on the outer max.
+    // No clones needed — staticScorePair runs in JS without touching PS state.
+    const { matrix, board } = buildStaticEvalContext(battle, evalOpts);
     let best = -Infinity;
     for (const [, p1Pairs] of groupByP1(pairs)) {
         let worst = Infinity;
         for (const pair of p1Pairs) {
             _prof.pairs_scored++;
+            const tse = process.hrtime.bigint();
             const s = staticScorePair(matrix, board, pair, battle);
+            _prof.static_eval_ms += hrms(tse);
             if (s < worst) worst = s;
             if (worst <= best) break; // prune: this p1 branch is dominated
         }
         if (worst > best) best = worst;
     }
     return best;
+}
+
+// Count p2 actions that the static evaluator treats as damaging (move type,
+// move not in NON_DAMAGING). Used as a tie-break signal when several p2
+// responses share the same worst-case score — preferring damaging actions
+// avoids picking a no-op (e.g. Aqua Ring) over a real attack (e.g. Aqua Tail)
+// when the eval has prematurely written off the target as KO'd. Why: static
+// eval can over-pessimize a defender (no Sash/Sturdy modeling, max-roll OHKO
+// assumption); both moves then contribute zero and first-enumerated wins.
+function countDamagingMoves(actions) {
+    if (!Array.isArray(actions)) return 0;
+    let n = 0;
+    for (const a of actions) {
+        if (!a || a.type !== 'move') continue;
+        const slug = (a.move || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (!NON_DAMAGING.has(slug)) n++;
+    }
+    return n;
 }
 
 // Depth-1 adversarial minimax, scored list.
@@ -956,12 +1132,15 @@ function minimaxScoredFromSnapshot(pairs, matrix, board, battle) {
         // (every p2 reply lets p1 win outright — common under greedy p2).
         let worstPair = p1Pairs[0];
         let worstScore = Infinity;
+        let worstDamaging = countDamagingMoves(p1Pairs[0].p2);
         for (const pair of p1Pairs) {
             //const s = scorePairCached(snapshotJson, stateHash, pair);
-            const s = staticScorePair(matrix, board, pair, battle)
-            if (s < worstScore) {
+            const s = staticScorePair(matrix, board, pair, battle);
+            const d = countDamagingMoves(pair.p2);
+            if (s < worstScore || (s === worstScore && d > worstDamaging)) {
                 worstScore = s;
                 worstPair = pair;
+                worstDamaging = d;
             }
         }
         out.push({ p1: p1Pairs[0].p1, d1: worstScore, adv_p2: worstPair.p2 });
@@ -974,7 +1153,7 @@ function handleBestPairMinimax(params) {
     profReset();
     const tTotal = process.hrtime.bigint();
 
-    const { state, depth = 2, top_k = 5, subway_ai_sides = [], p2_policy = 'minimax' } = params;
+    const { state, depth = 2, top_k = 5, subway_ai_sides = [], p2_policy = 'minimax', assume_hit = false, extended_scores = false } = params;
     if (!state) throw new Error('best_pair_minimax requires state');
     if (depth !== 1 && depth !== 2) throw new Error(`unsupported depth: ${depth}`);
     if (p2_policy !== 'minimax' && p2_policy !== 'greedy') {
@@ -984,7 +1163,8 @@ function handleBestPairMinimax(params) {
     const subwayAiSet = new Set(subway_ai_sides);
     const battle = restoreBattle(state);
 
-    const { matrix, board } = buildStaticEvalContext(battle, forceDamageRoll);
+    const evalOpts = { assumeHit: !!assume_hit };
+    const { matrix, board } = buildStaticEvalContext(battle, evalOpts);
 
     // Canonical snapshot: re-serialize so its hash matches subsequent clones.
     // (The input `state` may have been mutated by the caller; belt-and-braces.)
@@ -1022,6 +1202,13 @@ function handleBestPairMinimax(params) {
     }
 
     // depth === 2: top-K expansion. Fixed-b1 approximation (see evaluator.py).
+    // Parse the snapshot once and structuredClone per branch — JSON.parse on a
+    // ~30KB serialized battle is ~1ms each; with top_k=5 plus extended scoring
+    // it adds up. structuredClone of an in-memory object is several times
+    // faster than re-parsing JSON.
+    const tp = process.hrtime.bigint();
+    const parsedSnap = JSON.parse(snapshotJson);
+    _prof.clone_ms += hrms(tp);
     const top = d1Scored.slice(0, top_k);
     const results = [];
     for (const row of top) {
@@ -1030,9 +1217,10 @@ function handleBestPairMinimax(params) {
             continue;
         }
         const tc = process.hrtime.bigint();
-        const b = cloneFromJson(snapshotJson);
+        const b = cloneFromParsed(parsedSnap);
         _prof.clone_ms += hrms(tc);
         const ta = process.hrtime.bigint();
+        if (evalOpts.assumeHit) installRngHooks(b, [{ kind: 'accuracy', force: 'hit' }], []);
         applyChoicesInPlace(b, { p1: row.p1, p2: row.adv_p2 });
         _prof.apply_ms += hrms(ta);
         _prof.pairs_scored++;
@@ -1041,16 +1229,80 @@ function handleBestPairMinimax(params) {
             results.push({ p1: row.p1, d1: row.d1, d2: t, adv_p2: row.adv_p2 });
             continue;
         }
-        const d2 = movePhaseValueOfBattle(b, subwayAiSet, p2_policy, matrix, board);
+        const d2 = movePhaseValueOfBattle(b, subwayAiSet, p2_policy, evalOpts);
         results.push({ p1: row.p1, d1: row.d1, d2, adv_p2: row.adv_p2 });
     }
-    results.sort((a, b) => b.d2 - a.d2);
-    const best = results[0];
+
+    // Extended scoring: per-candidate worst-case (Cat-1 proof signal) and
+    // probability-weighted expected value. evalOpts intentionally drops
+    // assumeHit for these — accuracy variance is the whole point of the metric,
+    // so silencing it would defeat the purpose. Damage rolls remain at mean
+    // (matrix encodes E[dmg]); crit/secondary deferred.
+    if (extended_scores) {
+        const realEvalOpts = { ...evalOpts, assumeHit: false };
+        for (const r of results) {
+            if (!isFinite(r.d1)) {
+                r.d2_worst = r.d1;
+                r.d2_expected = r.d1;
+                continue;
+            }
+            const pair = { p1: r.p1, p2: r.adv_p2 };
+
+            const worstOverrides = buildWorstCaseOverrides(pair);
+            r.d2_worst = evaluatePairWithOverrides(
+                parsedSnap, pair, worstOverrides, subwayAiSet, p2_policy, realEvalOpts,
+            );
+
+            const dims = identifyAccuracyDimensions(battle, pair);
+            if (!dims.length) {
+                r.d2_expected = r.d2;
+            } else {
+                const combos = enumerateAccuracyCombos(dims);
+                let weighted = 0;
+                for (const combo of combos) {
+                    const v = evaluatePairWithOverrides(
+                        parsedSnap, pair, combo.overrides, subwayAiSet, p2_policy, realEvalOpts,
+                    );
+                    // Cap ±Infinity (terminal-score wins/losses) to a large
+                    // finite sentinel so that mixing win-combos with loss-combos
+                    // doesn't produce Infinity + (-Infinity) = NaN. Magnitude is
+                    // chosen well above the HP-fraction eval range (max ~8 for
+                    // a full 4v4) so a terminal still dominates a non-terminal.
+                    const vCapped = v === Infinity ? 1e6 : (v === -Infinity ? -1e6 : v);
+                    weighted += combo.prob * vCapped;
+                }
+                r.d2_expected = weighted;
+            }
+        }
+    }
+
+    // Selection rule:
+    //   * extended_scores: prefer Cat-1-able candidates (d2_worst > 0); within
+    //     that subset (or all candidates if none qualify), pick max d2_expected.
+    //   * legacy: pick max d2_mean (the prior behavior).
+    let best;
+    if (extended_scores) {
+        const cat1 = results.filter(r => isFinite(r.d2_worst) && r.d2_worst > 0);
+        const pool = cat1.length ? cat1 : results;
+        pool.sort((a, b) => b.d2_expected - a.d2_expected);
+        best = pool[0];
+        // Sort the displayed `scored` list by d2_expected for readability.
+        results.sort((a, b) => b.d2_expected - a.d2_expected);
+    } else {
+        results.sort((a, b) => b.d2 - a.d2);
+        best = results[0];
+    }
+
     return {
         chosen_pair: { p1: best.p1, p2: best.adv_p2 },
-        scored: results.map(r => ({
-            p1: r.p1, d1: encodeScore(r.d1), d2: encodeScore(r.d2), adv_p2: r.adv_p2,
-        })),
+        scored: results.map(r => {
+            const out = { p1: r.p1, d1: encodeScore(r.d1), d2: encodeScore(r.d2), adv_p2: r.adv_p2 };
+            if (extended_scores) {
+                out.d2_worst = encodeScore(r.d2_worst);
+                out.d2_expected = encodeScore(r.d2_expected);
+            }
+            return out;
+        }),
         depth: 2,
         cache_entries: _pairCache.size,
         profile: { ..._prof, total_ms: hrms(tTotal) },
@@ -1109,6 +1361,35 @@ function handleEnumerateTurn(params) {
 }
 
 
+function handleStaticScoreOne(params) {
+    const { state, pair } = params;
+    if (!state || !pair) throw new Error('static_score_one requires state and pair');
+    const battle = restoreBattle(state);
+    const { matrix, board } = buildStaticEvalContext(battle);
+    const score = staticScorePair(matrix, board, pair, battle);
+    // Dump matrix for the attackers used in the pair, for diagnostic inspection.
+    const dump = {};
+    for (const [atkKey, moveMap] of matrix.entries()) {
+        dump[atkKey] = {};
+        for (const [moveName, defMap] of moveMap.entries()) {
+            dump[atkKey][moveName] = {};
+            for (const [defKey, entry] of defMap.entries()) {
+                dump[atkKey][moveName][defKey] = entry;
+            }
+        }
+    }
+    return { score, matrix: dump, board: {
+        trickRoom: board.trickRoom,
+        p1PartyAlive: board.p1PartyAlive, p2PartyAlive: board.p2PartyAlive,
+        p1Bench: board.p1Bench, p2Bench: board.p2Bench,
+        p1s0: board.p1s0 && { key: board.p1s0.key, hpFrac: board.p1s0.hpFrac, spe: board.p1s0.spe, atkStage: board.p1s0.atkStage, ability: board.p1s0.ability },
+        p1s1: board.p1s1 && { key: board.p1s1.key, hpFrac: board.p1s1.hpFrac, spe: board.p1s1.spe, atkStage: board.p1s1.atkStage, ability: board.p1s1.ability },
+        p2s0: board.p2s0 && { key: board.p2s0.key, hpFrac: board.p2s0.hpFrac, spe: board.p2s0.spe, atkStage: board.p2s0.atkStage, ability: board.p2s0.ability },
+        p2s1: board.p2s1 && { key: board.p2s1.key, hpFrac: board.p2s1.hpFrac, spe: board.p2s1.spe, atkStage: board.p2s1.atkStage, ability: board.p2s1.ability },
+    }};
+}
+
+
 const handlers = {
     start_battle: handleStartBattle,
     execute_turn: handleExecuteTurn,
@@ -1117,6 +1398,7 @@ const handlers = {
     best_pair_minimax: handleBestPairMinimax,
     clear_minimax_cache: handleClearMinimaxCache,
     minimax_cache_stats: handleMinimaxCacheStats,
+    static_score_one: handleStaticScoreOne,
 };
 
 

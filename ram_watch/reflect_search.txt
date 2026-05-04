@@ -1,0 +1,29 @@
+on cheat engine we have:
+9C 45 1F 02 2A 00 00 00 04 00 00 00 01 00 00 00 [reflect]
+D8 45 1F 02 2A 00 00 00 03 00 00 00 01 00 00 00 [light screen]
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
+00 00 00 00 20 00 00 00 04 00 00 00 00 00 00 00 [tailwind]
+the first 4 bytes of each line indicate the pointer of the action (so if it's 00 00 00 00 the action is not active), the 5th byte i don't know, the 8th byte is the number of turns (incremental, does not reset to 0 after action is over), the 12th byte (0 or 1) indicates if the effect is active this all appears in cheat engine but not in desmume, even if i use ram search
+
+
+
+
+
+on desmume, at 0x21F459C we have:
+D8 45 1F 02  -> previous effect pointer, points to tailwind; this disappears when tailwind expires
+70 44 1F 02  -> next effect pointer, points to light screen; this disappears when light screen expires
+F0 D6 89 06  -> idk what this is, but it stays the same between turns; disappears (is set as 00 00 00 00) when reflect expires
+00 00 00 00
+02 00 00 00
+00 00 00 05
+00 00 01 20
+00 00 00 00
+00 00 00 00
+00 00 00 00
+00 00 00 00
+00 00 00 00
+00 00 00 00
+2A 00 00 00
+00 00 00 1F
+

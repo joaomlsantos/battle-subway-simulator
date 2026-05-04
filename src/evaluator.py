@@ -81,7 +81,7 @@ def cache_stats(drv=None):
     return drv.call("minimax_cache_stats")
 
 
-def best_pair_minimax(drv, state, enum=None, subway_ai_sides=None, p2_policy="minimax"):
+def best_pair_minimax(drv, state, enum=None, subway_ai_sides=None, p2_policy="minimax", assume_hit=False):
     """Depth-1 adversarial minimax. Returns (chosen_pair, scored_list, profile).
 
     scored_list is [(p1_action, score, adversarial_p2_action), ...] sorted
@@ -89,33 +89,52 @@ def best_pair_minimax(drv, state, enum=None, subway_ai_sides=None, p2_policy="mi
     `profile` is a dict of driver-side timing buckets (see handleBestPairMinimax).
     `p2_policy` ∈ {"minimax", "greedy"}; see driver.js for semantics. `greedy`
     collapses p2 branching to the scripted Subway-AI model.
+    `assume_hit`: if True, all accuracy rolls resolve as hits inside search —
+    both in the static damage matrix and on cloned battles used for deeper plies.
     `enum` is accepted for API compatibility but ignored (JS re-enumerates).
     """
     sides = DEFAULT_SUBWAY_AI_SIDES if subway_ai_sides is None else subway_ai_sides
     res = drv.call("best_pair_minimax", {
         "state": state, "depth": 1, "subway_ai_sides": sides, "p2_policy": p2_policy,
+        "assume_hit": assume_hit,
     })
     pair = res["chosen_pair"]
     scored = [(r["p1"], _decode_score(r["d1"]), r["adv_p2"]) for r in res["scored"]]
     return pair, scored, res.get("profile", {})
 
 
-def best_pair_minimax_depth2(drv, state, enum=None, top_k=5, subway_ai_sides=None, p2_policy="minimax"):
+def best_pair_minimax_depth2(drv, state, enum=None, top_k=5, subway_ai_sides=None, p2_policy="minimax", assume_hit=False, extended_scores=False):
     """Depth-2 adversarial minimax with top-K filtering on p1 actions.
 
     Returns (chosen_pair, scored, profile) where scored is a list of
     (p1_action, d1_score, d2_score, adversarial_p2_action) sorted by d2 desc.
+
+    When `extended_scores=True`, each scored entry gains two extra fields —
+    `d2_worst` (worst-case-collapse score, p1 misses + min damage, p2 hits +
+    max damage; the Cat-1-proof signal) and `d2_expected` (probability-weighted
+    EV across accuracy hit/miss outcomes). Selection switches to: prefer
+    candidates with `d2_worst > 0`, breaking ties by `d2_expected`; fall back
+    to max `d2_expected` when no Cat-1-able line exists. Each scored entry is
+    `(p1, d1, d2, adv_p2)` or `(p1, d1, d2, adv_p2, d2_worst, d2_expected)`.
+
     `profile` is a dict of driver-side timing buckets.
     `p2_policy` ∈ {"minimax", "greedy"} (see driver.js).
+    `assume_hit`: if True, all accuracy rolls resolve as hits inside search.
     `enum` is accepted for API compatibility but ignored (JS re-enumerates).
     """
     sides = DEFAULT_SUBWAY_AI_SIDES if subway_ai_sides is None else subway_ai_sides
     res = drv.call("best_pair_minimax", {
         "state": state, "depth": 2, "top_k": top_k, "subway_ai_sides": sides,
-        "p2_policy": p2_policy,
+        "p2_policy": p2_policy, "assume_hit": assume_hit,
+        "extended_scores": extended_scores,
     })
     pair = res["chosen_pair"]
-    scored = [(r["p1"], _decode_score(r["d1"]), _decode_score(r["d2"]), r["adv_p2"]) for r in res["scored"]]
+    scored = []
+    for r in res["scored"]:
+        row = (r["p1"], _decode_score(r["d1"]), _decode_score(r["d2"]), r["adv_p2"])
+        if extended_scores:
+            row = row + (_decode_score(r["d2_worst"]), _decode_score(r["d2_expected"]))
+        scored.append(row)
     return pair, scored, res.get("profile", {})
 
 
@@ -129,7 +148,8 @@ def format_profile(p):
     br = f"{p.get('p1_actions_root', 0)}x{p.get('p2_actions_root', 0)}"
     buckets = (
         f"clone={ms('clone_ms')} apply={ms('apply_ms')} "
-        f"ser={ms('serialize_ms')} enum={ms('enumerate_ms')} eval={ms('eval_ms')}"
+        f"ser={ms('serialize_ms')} enum={ms('enumerate_ms')} "
+        f"eval={ms('eval_ms')} static={ms('static_eval_ms')}"
     )
     cache = f"cache={p.get('cache_hits', 0)}h/{p.get('cache_misses', 0)}m"
     return (

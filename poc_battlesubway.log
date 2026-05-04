@@ -1,0 +1,344 @@
+P1: ['Terrakion', 'Whimsicott', 'Darmanitan', 'Thundurus']
+P2: ['Garchomp', 'Latios', 'Metagross', 'Hydreigon']
+
+[ picking] top-50 depth-2 in 1.8s (cache: 0 entries)
+         profile: branch=70x35 pairs=31657 recurse=166 clone=167ms apply=264ms ser=124ms enum=19ms eval=0ms cache=0h/0m
+         -> Rock Slide | Beat Up @allySlot0                   d1=-1.38  d2=+1.04  vs Earthquake | Draco Meteor @foeSlot1
+            Sacred Sword @foeSlot0 | switch->Thundurus        d1=-1.44  d2=+1.02  vs Earthquake | Draco Meteor @foeSlot1
+            Sacred Sword @foeSlot0 | Beat Up @allySlot0       d1=-1.44  d2=+0.66  vs Earthquake | Draco Meteor @foeSlot1
+            Sacred Sword @foeSlot0 | switch->Darmanitan       d1=-1.44  d2=+0.61  vs Earthquake | Draco Meteor @foeSlot1
+            Rock Slide | Sunny Day                            d1=-1.38  d2=+0.17  vs Earthquake | Draco Meteor @foeSlot1
+            Protect | Giga Drain @foeSlot0                    d1=-1.61  d2=+0.14  vs Earthquake | Draco Meteor @foeSlot1
+            Sacred Sword @foeSlot0 | Giga Drain @foeSlot1     d1=-1.22  d2=+0.13  vs Earthquake | Draco Meteor @foeSlot1
+            X-Scissor @foeSlot0 | Tailwind                    d1=-1.63  d2=+0.13  vs Earthquake | Draco Meteor @foeSlot1
+            X-Scissor @foeSlot0 | Sunny Day                   d1=-1.63  d2=+0.13  vs Earthquake | Draco Meteor @foeSlot1
+            switch->Thundurus | Giga Drain @foeSlot0          d1=-1.61  d2=+0.12  vs Earthquake | Draco Meteor @foeSlot1
+            Rock Slide | Giga Drain @foeSlot0                 d1=-1.06  d2=+0.10  vs Earthquake | Draco Meteor @foeSlot1
+            Sacred Sword @foeSlot0 | Beat Up @foeSlot1        d1=-1.44  d2=+0.05  vs Earthquake | Draco Meteor @foeSlot1
+            Sacred Sword @foeSlot0 | Tailwind                 d1=-1.44  d2=+0.05  vs Earthquake | Draco Meteor @foeSlot1
+            Sacred Sword @foeSlot0 | Sunny Day                d1=-1.44  d2=+0.05  vs Earthquake | Draco Meteor @foeSlot1
+            X-Scissor @foeSlot0 | Beat Up @allySlot0          d1=-1.63  d2=+0.00  vs Earthquake | Draco Meteor @foeSlot1
+            X-Scissor @foeSlot1 | Giga Drain @foeSlot1        d1=-0.93  d2=-0.21  vs Earthquake | Draco Meteor @foeSlot1
+            X-Scissor @foeSlot1 | Sunny Day                   d1=-1.15  d2=-0.28  vs Earthquake | Draco Meteor @foeSlot1
+            X-Scissor @foeSlot1 | Beat Up @foeSlot1           d1=-1.15  d2=-0.46  vs Earthquake | Draco Meteor @foeSlot1
+            X-Scissor @foeSlot1 | Tailwind                    d1=-1.15  d2=-0.46  vs Earthquake | Draco Meteor @foeSlot1
+            Protect | Giga Drain @foeSlot1                    d1=-1.71  d2=-0.49  vs Earthquake | Draco Meteor @foeSlot1
+            Sacred Sword @foeSlot0 | Giga Drain @foeSlot0     d1=-1.12  d2=-0.54  vs Earthquake | Draco Meteor @foeSlot1
+            X-Scissor @foeSlot1 | Giga Drain @foeSlot0        d1=-0.83  d2=-0.60  vs Earthquake | Draco Meteor @foeSlot1
+            X-Scissor @foeSlot0 | Giga Drain @foeSlot0        d1=-1.32  d2=-0.67  vs Earthquake | Draco Meteor @foeSlot1
+            Rock Slide | Tailwind                             d1=-1.38  d2=-0.68  vs Earthquake | Draco Meteor @foeSlot1
+            Rock Slide | switch->Darmanitan                   d1=-1.38  d2=-0.69  vs Earthquake | Draco Meteor @foeSlot1
+            Sacred Sword @foeSlot0 | Beat Up @foeSlot0        d1=-1.44  d2=-0.69  vs Earthquake | Draco Meteor @foeSlot1
+            Rock Slide | Beat Up @foeSlot0                    d1=-1.38  d2=-0.72  vs Earthquake | Draco Meteor @foeSlot1
+            Sacred Sword @foeSlot1 | Giga Drain @foeSlot0     d1=-1.29  d2=-0.72  vs Earthquake | Draco Meteor @foeSlot1
+            Sacred Sword @foeSlot1 | Sunny Day                d1=-1.60  d2=-0.76  vs Earthquake | Draco Meteor @foeSlot1
+            X-Scissor @foeSlot0 | Beat Up @foeSlot1           d1=-1.63  d2=-0.80  vs Earthquake | Draco Meteor @foeSlot1
+            Rock Slide | Beat Up @foeSlot1                    d1=-1.38  d2=-0.81  vs Earthquake | Draco Meteor @foeSlot1
+            Rock Slide | switch->Thundurus                    d1=-1.38  d2=-0.84  vs Earthquake | Draco Meteor @foeSlot1
+            X-Scissor @foeSlot0 | Giga Drain @foeSlot1        d1=-1.42  d2=-0.87  vs Earthquake | Draco Meteor @foeSlot1
+            Rock Slide | Giga Drain @foeSlot1                 d1=-1.16  d2=-0.87  vs Earthquake | Draco Meteor @foeSlot1
+            Sacred Sword @foeSlot1 | switch->Thundurus        d1=-1.60  d2=-0.94  vs Earthquake | Draco Meteor @foeSlot1
+            X-Scissor @foeSlot1 | Beat Up @foeSlot0           d1=-1.15  d2=-0.95  vs Earthquake | Draco Meteor @foeSlot1
+            Sacred Sword @foeSlot1 | Beat Up @foeSlot0        d1=-1.60  d2=-0.95  vs Earthquake | Draco Meteor @foeSlot1
+            X-Scissor @foeSlot0 | Beat Up @foeSlot0           d1=-1.63  d2=-0.98  vs Earthquake | Draco Meteor @foeSlot1
+            Sacred Sword @foeSlot1 | Tailwind                 d1=-1.60  d2=-1.03  vs Earthquake | Draco Meteor @foeSlot1
+            Sacred Sword @foeSlot1 | Giga Drain @foeSlot1     d1=-1.39  d2=-1.04  vs Earthquake | Draco Meteor @foeSlot1
+            X-Scissor @foeSlot1 | switch->Thundurus           d1=-1.15  d2=-1.07  vs Earthquake | Draco Meteor @foeSlot1
+            Sacred Sword @foeSlot1 | Beat Up @foeSlot1        d1=-1.60  d2=-1.11  vs Earthquake | Draco Meteor @foeSlot1
+            X-Scissor @foeSlot0 | switch->Thundurus           d1=-1.63  d2=-1.26  vs Earthquake | Draco Meteor @foeSlot1
+            switch->Darmanitan | Giga Drain @foeSlot0         d1=-1.61  d2=-1.39  vs Earthquake | Draco Meteor @foeSlot1
+            Sacred Sword @foeSlot1 | switch->Darmanitan       d1=-1.60  d2=-1.50  vs Earthquake | Draco Meteor @foeSlot1
+            switch->Darmanitan | Giga Drain @foeSlot1         d1=-1.71  d2=-1.58  vs Earthquake | Draco Meteor @foeSlot1
+            X-Scissor @foeSlot0 | switch->Darmanitan          d1=-1.63  d2=-1.63  vs Earthquake | Draco Meteor @foeSlot1
+            X-Scissor @foeSlot1 | Beat Up @allySlot0          d1=-1.15  d2=-1.85  vs Earthquake | Draco Meteor @foeSlot1
+            Sacred Sword @foeSlot1 | Beat Up @allySlot0       d1=-1.60  d2=-1.85  vs Earthquake | Draco Meteor @foeSlot1
+            X-Scissor @foeSlot1 | switch->Darmanitan          d1=-1.15  d2=-2.07  vs Earthquake | Draco Meteor @foeSlot1
+[  turn 1] P1 Rock Slide | Beat Up @allySlot0                  || P2 Earthquake | Draco Meteor @foeSlot1               rng[accuracy:6 crit:8 damage_roll:8 redirect_target:6 secondary:2]
+           P1 active: Terrakion 4% [atk+4]  Whimsicott 69%  | bench: Darmanitan, Thundurus
+           P2 active: Garchomp 58%  | bench: Latios FNT, Metagross, Hydreigon
+[  switch] top-50 depth-2 in 0.0s (cache: 0 entries)
+         profile: branch=1x2 pairs=272 recurse=1 clone=1ms apply=1ms ser=1ms enum=0ms eval=0ms cache=0h/0m
+         -> (no request)                                      d1=+1.15  d2=+0.77  vs pass | switch->Metagross
+[  switch] P1 (no request)                                     || P2 pass | switch->Metagross                          rng[]
+           P1 active: Terrakion 4% [atk+4]  Whimsicott 69%  | bench: Darmanitan, Thundurus
+           P2 active: Garchomp 58%  Metagross 100%  | bench: Latios FNT, Hydreigon
+[ picking] top-50 depth-2 in 1.1s (cache: 0 entries)
+         profile: branch=70x30 pairs=12616 recurse=123 clone=118ms apply=176ms ser=85ms enum=13ms eval=0ms cache=0h/0m
+         -> Sacred Sword @foeSlot0 | switch->Darmanitan       d1=-0.03  d2=+2.73  vs Earthquake | Meteor Mash @foeSlot1
+            Sacred Sword @foeSlot0 | switch->Thundurus        d1=-0.03  d2=+2.73  vs Earthquake | Meteor Mash @foeSlot1
+            X-Scissor @foeSlot0 | switch->Darmanitan          d1=-0.03  d2=+2.73  vs Earthquake | Meteor Mash @foeSlot1
+            X-Scissor @foeSlot0 | switch->Thundurus           d1=-0.03  d2=+2.73  vs Earthquake | Meteor Mash @foeSlot1
+            Sacred Sword @foeSlot1 | Giga Drain @foeSlot0     d1=+1.00  d2=+2.31  vs Dragon Claw @foeSlot1 | Meteor Mash @foeSlot0
+            Sacred Sword @foeSlot1 | Giga Drain @foeSlot1     d1=+0.51  d2=+2.18  vs Dragon Claw @foeSlot1 | Meteor Mash @foeSlot0
+            Sacred Sword @foeSlot1 | Tailwind                 d1=+0.51  d2=+2.14  vs Dragon Claw @foeSlot1 | Meteor Mash @foeSlot0
+            Sacred Sword @foeSlot1 | Sunny Day                d1=+0.51  d2=+2.14  vs Dragon Claw @foeSlot1 | Meteor Mash @foeSlot0
+            Sacred Sword @foeSlot1 | switch->Thundurus        d1=+0.51  d2=+2.13  vs Dragon Claw @foeSlot1 | Meteor Mash @foeSlot0
+            Sacred Sword @foeSlot1 | Beat Up @foeSlot0        d1=+0.51  d2=+2.12  vs Dragon Claw @foeSlot1 | Meteor Mash @foeSlot0
+            Sacred Sword @foeSlot1 | Beat Up @foeSlot1        d1=+0.51  d2=+2.12  vs Dragon Claw @foeSlot1 | Meteor Mash @foeSlot0
+            Sacred Sword @foeSlot1 | switch->Darmanitan       d1=+0.51  d2=+2.11  vs Dragon Claw @foeSlot1 | Meteor Mash @foeSlot0
+            Sacred Sword @foeSlot0 | Giga Drain @foeSlot1     d1=+0.21  d2=+2.04  vs Earthquake | Meteor Mash @foeSlot1
+            X-Scissor @foeSlot0 | Giga Drain @foeSlot1        d1=+0.21  d2=+2.04  vs Earthquake | Meteor Mash @foeSlot1
+            Sacred Sword @foeSlot0 | Beat Up @foeSlot0        d1=+0.04  d2=+2.04  vs Earthquake | Meteor Mash @foeSlot1
+            Sacred Sword @foeSlot0 | Beat Up @foeSlot1        d1=+0.04  d2=+2.04  vs Earthquake | Meteor Mash @foeSlot1
+            X-Scissor @foeSlot0 | Beat Up @foeSlot0           d1=+0.04  d2=+2.04  vs Earthquake | Meteor Mash @foeSlot1
+            X-Scissor @foeSlot0 | Beat Up @foeSlot1           d1=+0.04  d2=+2.04  vs Earthquake | Meteor Mash @foeSlot1
+            Rock Slide | Giga Drain @foeSlot0                 d1=+0.43  d2=+1.97  vs Earthquake | Meteor Mash @foeSlot1
+            Rock Slide | Tailwind                             d1=+0.25  d2=+1.73  vs Earthquake | Meteor Mash @foeSlot1
+            Rock Slide | Sunny Day                            d1=+0.25  d2=+1.73  vs Earthquake | Meteor Mash @foeSlot1
+            Rock Slide | switch->Darmanitan                   d1=-0.06  d2=+1.73  vs Earthquake | Meteor Mash @foeSlot1
+            Rock Slide | switch->Thundurus                    d1=-0.06  d2=+1.73  vs Earthquake | Meteor Mash @foeSlot1
+            Sacred Sword @foeSlot0 | Tailwind                 d1=+0.04  d2=+1.61  vs Earthquake | Meteor Mash @foeSlot1
+            Sacred Sword @foeSlot0 | Sunny Day                d1=+0.04  d2=+1.61  vs Earthquake | Meteor Mash @foeSlot1
+            X-Scissor @foeSlot0 | Tailwind                    d1=+0.04  d2=+1.61  vs Earthquake | Meteor Mash @foeSlot1
+            X-Scissor @foeSlot0 | Sunny Day                   d1=+0.04  d2=+1.61  vs Earthquake | Meteor Mash @foeSlot1
+            Sacred Sword @foeSlot0 | Giga Drain @foeSlot0     d1=+0.04  d2=+1.57  vs Earthquake | Meteor Mash @foeSlot1
+            X-Scissor @foeSlot0 | Giga Drain @foeSlot0        d1=+0.04  d2=+1.57  vs Earthquake | Meteor Mash @foeSlot1
+            X-Scissor @foeSlot1 | Giga Drain @foeSlot0        d1=+0.67  d2=+1.18  vs Earthquake | Meteor Mash @foeSlot1
+            Rock Slide | Giga Drain @foeSlot1                 d1=+0.43  d2=+1.04  vs Earthquake | Meteor Mash @foeSlot1
+            Protect | Giga Drain @foeSlot0                    d1=-0.09  d2=+1.04  vs Earthquake | Meteor Mash @foeSlot1
+            Protect | Giga Drain @foeSlot1                    d1=-0.40  d2=+1.04  vs Earthquake | Meteor Mash @foeSlot1
+            Protect | Beat Up @foeSlot0                       d1=-0.58  d2=+1.04  vs Earthquake | Meteor Mash @foeSlot1
+            Protect | Beat Up @foeSlot1                       d1=-0.58  d2=+1.04  vs Earthquake | Meteor Mash @foeSlot1
+            Protect | Beat Up @allySlot0                      d1=-0.58  d2=+1.04  vs Earthquake | Meteor Mash @foeSlot1
+            Rock Slide | Beat Up @allySlot0                   d1=+0.25  d2=+1.00  vs Earthquake | Meteor Mash @foeSlot1
+            X-Scissor @foeSlot1 | Beat Up @allySlot0          d1=+0.18  d2=+1.00  vs Earthquake | Meteor Mash @foeSlot1
+            Sacred Sword @foeSlot0 | Beat Up @allySlot0       d1=+0.04  d2=+1.00  vs Earthquake | Meteor Mash @foeSlot1
+            X-Scissor @foeSlot0 | Beat Up @allySlot0          d1=+0.04  d2=+1.00  vs Earthquake | Meteor Mash @foeSlot1
+            Rock Slide | Beat Up @foeSlot0                    d1=+0.25  d2=+0.97  vs Earthquake | Meteor Mash @foeSlot1
+            Rock Slide | Beat Up @foeSlot1                    d1=+0.25  d2=+0.97  vs Earthquake | Meteor Mash @foeSlot1
+            X-Scissor @foeSlot1 | switch->Thundurus           d1=-0.13  d2=+0.79  vs Earthquake | Meteor Mash @foeSlot1
+            X-Scissor @foeSlot1 | Giga Drain @foeSlot1        d1=+0.36  d2=+0.63  vs Earthquake | Meteor Mash @foeSlot1
+            X-Scissor @foeSlot1 | Sunny Day                   d1=+0.18  d2=+0.57  vs Earthquake | Meteor Mash @foeSlot1
+            X-Scissor @foeSlot1 | Tailwind                    d1=+0.18  d2=+0.51  vs Earthquake | Meteor Mash @foeSlot1
+            X-Scissor @foeSlot1 | Beat Up @foeSlot0           d1=+0.18  d2=+0.50  vs Earthquake | Meteor Mash @foeSlot1
+            X-Scissor @foeSlot1 | Beat Up @foeSlot1           d1=+0.18  d2=+0.50  vs Earthquake | Meteor Mash @foeSlot1
+            Sacred Sword @foeSlot1 | Beat Up @allySlot0       d1=+0.51  d2=-0.17  vs Dragon Claw @foeSlot1 | Meteor Mash @foeSlot0
+            X-Scissor @foeSlot1 | switch->Darmanitan          d1=-0.13  d2=-0.21  vs Earthquake | Meteor Mash @foeSlot1
+[  turn 2] P1 Sacred Sword @foeSlot0 | switch->Darmanitan      || P2 Earthquake | Meteor Mash @foeSlot1                rng[accuracy:2 crit:2 damage_roll:2 redirect_target:2 secondary:1]
+           P1 active: Terrakion 4% [atk+4]  Darmanitan 54%  | bench: Whimsicott 69%, Thundurus
+           P2 active: Metagross 100%  | bench: Garchomp FNT, Latios FNT, Hydreigon
+[  switch] top-50 depth-2 in 0.0s (cache: 0 entries)
+         profile: branch=1x1 pairs=149 recurse=1 clone=1ms apply=1ms ser=1ms enum=0ms eval=0ms cache=0h/0m
+         -> (no request)                                      d1=+1.26  d2=+2.26  vs switch->Hydreigon | pass
+[  switch] P1 (no request)                                     || P2 switch->Hydreigon | pass                          rng[]
+           P1 active: Terrakion 4% [atk+4]  Darmanitan 54%  | bench: Whimsicott 69%, Thundurus
+           P2 active: Hydreigon 100%  Metagross 100%  | bench: Latios FNT, Garchomp FNT
+[ picking] top-50 depth-2 in 1.1s (cache: 0 entries)
+         profile: branch=54x48 pairs=10858 recurse=144 clone=132ms apply=173ms ser=103ms enum=9ms eval=0ms cache=0h/0m
+         -> Protect | Protect                                 d1=-0.31  d2=+2.26  vs Draco Meteor @foeSlot0 | Zen Headbutt @foeSlot1
+            Protect | switch->Thundurus                       d1=-0.77  d2=+2.26  vs Draco Meteor @foeSlot0 | Earthquake
+            Protect | Flare Blitz @foeSlot1                   d1=+0.69  d2=+1.73  vs Surf | Meteor Mash @foeSlot0
+            Protect | Flare Blitz @foeSlot0                   d1=+0.53  d2=+1.73  vs Draco Meteor @foeSlot0 | Zen Headbutt @foeSlot1
+            Protect | Earthquake                              d1=+0.41  d2=+1.73  vs Draco Meteor @foeSlot0 | Zen Headbutt @foeSlot1
+            Protect | Rock Slide                              d1=+0.19  d2=+1.73  vs Draco Meteor @foeSlot0 | Zen Headbutt @foeSlot1
+            Rock Slide | Flare Blitz @foeSlot1                d1=+2.26  d2=+1.32  vs Draco Meteor @foeSlot0 | Meteor Mash @foeSlot0
+            Sacred Sword @foeSlot0 | Flare Blitz @foeSlot1    d1=+2.26  d2=+1.32  vs Draco Meteor @foeSlot0 | Meteor Mash @foeSlot0
+            X-Scissor @foeSlot0 | Flare Blitz @foeSlot1       d1=+2.26  d2=+1.32  vs Draco Meteor @foeSlot0 | Meteor Mash @foeSlot0
+            Sacred Sword @foeSlot1 | switch->Thundurus        d1=+0.26  d2=+1.26  vs Draco Meteor @foeSlot1 | Meteor Mash @foeSlot0
+            Rock Slide | Protect                              d1=+1.27  d2=+1.20  vs Draco Meteor @foeSlot0 | Earthquake
+            Protect | switch->Whimsicott                      d1=-0.46  d2=+1.15  vs Draco Meteor @foeSlot0 | Earthquake
+            switch->Whimsicott | Earthquake                   d1=-0.24  d2=+1.04  vs Draco Meteor @foeSlot0 | Zen Headbutt @foeSlot1
+            Sacred Sword @foeSlot0 | Protect                  d1=+0.69  d2=+1.01  vs Draco Meteor @foeSlot0 | Earthquake
+            X-Scissor @foeSlot0 | Protect                     d1=+0.69  d2=+1.01  vs Draco Meteor @foeSlot0 | Earthquake
+            Rock Slide | switch->Thundurus                    d1=+0.87  d2=+1.00  vs Draco Meteor @foeSlot0 | Earthquake
+            X-Scissor @foeSlot1 | Protect                     d1=+0.45  d2=+1.00  vs Draco Meteor @foeSlot0 | Zen Headbutt @foeSlot1
+            Sacred Sword @foeSlot0 | switch->Thundurus        d1=+0.29  d2=+1.00  vs Draco Meteor @foeSlot0 | Earthquake
+            X-Scissor @foeSlot0 | switch->Thundurus           d1=+0.29  d2=+1.00  vs Draco Meteor @foeSlot0 | Earthquake
+            X-Scissor @foeSlot1 | switch->Thundurus           d1=-0.01  d2=+1.00  vs Draco Meteor @foeSlot0 | Earthquake
+            Sacred Sword @foeSlot1 | Protect                  d1=+0.69  d2=+0.90  vs Surf | Meteor Mash @foeSlot0
+            switch->Thundurus | Earthquake                    d1=-0.55  d2=+0.76  vs Draco Meteor @foeSlot0 | Earthquake
+            switch->Thundurus | Flare Blitz @foeSlot1         d1=+0.16  d2=+0.69  vs Surf | Meteor Mash @foeSlot0
+            Sacred Sword @foeSlot0 | switch->Whimsicott       d1=+0.54  d2=+0.68  vs Draco Meteor @foeSlot0 | Earthquake
+            X-Scissor @foeSlot0 | switch->Whimsicott          d1=+0.54  d2=+0.68  vs Draco Meteor @foeSlot0 | Earthquake
+            X-Scissor @foeSlot1 | switch->Whimsicott          d1=+0.30  d2=+0.68  vs Draco Meteor @foeSlot0 | Earthquake
+            switch->Whimsicott | Flare Blitz @foeSlot1        d1=+0.16  d2=+0.68  vs Surf | Meteor Mash @foeSlot0
+            Rock Slide | switch->Whimsicott                   d1=+1.12  d2=+0.67  vs Draco Meteor @foeSlot0 | Earthquake
+            switch->Thundurus | Rock Slide                    d1=-0.78  d2=+0.50  vs Draco Meteor @foeSlot0 | Earthquake
+            switch->Whimsicott | Flare Blitz @foeSlot0        d1=-0.12  d2=+0.27  vs Draco Meteor @foeSlot0 | Zen Headbutt @foeSlot1
+            Rock Slide | Earthquake                           d1=+2.26  d2=+0.16  vs Draco Meteor @foeSlot0 | Meteor Mash @foeSlot0
+            Sacred Sword @foeSlot0 | Earthquake               d1=+1.66  d2=+0.16  vs Draco Meteor @foeSlot0 | Earthquake
+            X-Scissor @foeSlot0 | Earthquake                  d1=+1.66  d2=+0.16  vs Draco Meteor @foeSlot0 | Earthquake
+            switch->Whimsicott | Rock Slide                   d1=-0.46  d2=+0.15  vs Draco Meteor @foeSlot0 | Zen Headbutt @foeSlot1
+            Sacred Sword @foeSlot1 | Flare Blitz @foeSlot0    d1=+1.53  d2=+0.15  vs Surf | Meteor Mash @foeSlot0
+            Sacred Sword @foeSlot1 | Rock Slide               d1=+1.10  d2=+0.15  vs Surf | Meteor Mash @foeSlot0
+            Sacred Sword @foeSlot1 | Flare Blitz @foeSlot1    d1=+0.69  d2=+0.15  vs Surf | Meteor Mash @foeSlot0
+            Sacred Sword @foeSlot1 | Earthquake               d1=+0.69  d2=+0.15  vs Surf | Meteor Mash @foeSlot0
+            X-Scissor @foeSlot1 | Flare Blitz @foeSlot1       d1=+0.69  d2=+0.15  vs Surf | Meteor Mash @foeSlot0
+            X-Scissor @foeSlot1 | Earthquake                  d1=+0.69  d2=+0.15  vs Surf | Meteor Mash @foeSlot0
+            X-Scissor @foeSlot1 | Flare Blitz @foeSlot0       d1=+1.30  d2=+0.00  vs Draco Meteor @foeSlot0 | Zen Headbutt @foeSlot1
+            Rock Slide | Flare Blitz @foeSlot0                d1=+1.27  d2=+0.00  vs Draco Meteor @foeSlot0 | Earthquake
+            Sacred Sword @foeSlot0 | Flare Blitz @foeSlot0    d1=+0.69  d2=+0.00  vs Draco Meteor @foeSlot0 | Earthquake
+            X-Scissor @foeSlot0 | Flare Blitz @foeSlot0       d1=+0.69  d2=+0.00  vs Draco Meteor @foeSlot0 | Earthquake
+            Sacred Sword @foeSlot1 | switch->Whimsicott       d1=+0.54  d2=-0.03  vs Surf | Meteor Mash @foeSlot0
+            X-Scissor @foeSlot1 | Rock Slide                  d1=+0.95  d2=-0.28  vs Draco Meteor @foeSlot0 | Zen Headbutt @foeSlot1
+            Sacred Sword @foeSlot0 | Rock Slide               d1=+0.94  d2=-0.29  vs Draco Meteor @foeSlot0 | Earthquake
+            X-Scissor @foeSlot0 | Rock Slide                  d1=+0.94  d2=-0.29  vs Draco Meteor @foeSlot0 | Earthquake
+            Rock Slide | Rock Slide                           d1=+1.52  d2=-0.45  vs Draco Meteor @foeSlot0 | Earthquake
+            switch->Thundurus | Flare Blitz @foeSlot0         d1=-0.43  d2=-0.46  vs Draco Meteor @foeSlot0 | Earthquake
+[  turn 4] P1 Protect | Protect                                || P2 Draco Meteor @foeSlot0 | Zen Headbutt @foeSlot1   rng[speed_tie:2]
+           P1 active: Terrakion 4% [atk+4]  Darmanitan 54%  | bench: Whimsicott 69%, Thundurus
+           P2 active: Hydreigon 100%  Metagross 100%  | bench: Latios FNT, Garchomp FNT
+[ picking] top-50 depth-2 in 1.0s (cache: 0 entries)
+         profile: branch=54x12 pairs=8370 recurse=140 clone=128ms apply=175ms ser=99ms enum=9ms eval=0ms cache=0h/0m
+         -> Sacred Sword @foeSlot1 | Protect                  d1=+0.73  d2=+2.26  vs Draco Meteor @foeSlot1 | Meteor Mash @foeSlot0
+            Protect | Rock Slide                              d1=+0.29  d2=+2.26  vs Draco Meteor @foeSlot0 | Zen Headbutt @foeSlot1
+            Protect | Protect                                 d1=-0.31  d2=+2.26  vs Draco Meteor @foeSlot0 | Zen Headbutt @foeSlot1
+            Protect | switch->Thundurus                       d1=-0.77  d2=+2.26  vs Draco Meteor @foeSlot0 | Earthquake
+            Sacred Sword @foeSlot1 | Rock Slide               d1=+1.36  d2=+1.73  vs Draco Meteor @foeSlot1 | Meteor Mash @foeSlot0
+            Sacred Sword @foeSlot1 | Flare Blitz @foeSlot0    d1=+1.27  d2=+1.73  vs Draco Meteor @foeSlot1 | Meteor Mash @foeSlot0
+            Sacred Sword @foeSlot1 | Flare Blitz @foeSlot1    d1=+0.73  d2=+1.73  vs Draco Meteor @foeSlot1 | Meteor Mash @foeSlot0
+            Sacred Sword @foeSlot1 | Earthquake               d1=+0.73  d2=+1.73  vs Draco Meteor @foeSlot1 | Meteor Mash @foeSlot0
+            Protect | Flare Blitz @foeSlot1                   d1=+0.73  d2=+1.73  vs Draco Meteor @foeSlot1 | Meteor Mash @foeSlot0
+            Protect | Earthquake                              d1=+0.41  d2=+1.73  vs Draco Meteor @foeSlot0 | Zen Headbutt @foeSlot1
+            Protect | Flare Blitz @foeSlot0                   d1=+0.23  d2=+1.73  vs Draco Meteor @foeSlot0 | Zen Headbutt @foeSlot1
+            Sacred Sword @foeSlot1 | switch->Whimsicott       d1=+0.58  d2=+1.58  vs Draco Meteor @foeSlot1 | Meteor Mash @foeSlot0
+            switch->Whimsicott | Earthquake                   d1=-0.24  d2=+1.48  vs Draco Meteor @foeSlot0 | Zen Headbutt @foeSlot1
+            Rock Slide | Flare Blitz @foeSlot1                d1=+2.26  d2=+1.32  vs Draco Meteor @foeSlot0 | Meteor Mash @foeSlot0
+            Sacred Sword @foeSlot0 | Flare Blitz @foeSlot1    d1=+2.26  d2=+1.32  vs Draco Meteor @foeSlot0 | Meteor Mash @foeSlot0
+            X-Scissor @foeSlot0 | Flare Blitz @foeSlot1       d1=+2.26  d2=+1.32  vs Draco Meteor @foeSlot0 | Meteor Mash @foeSlot0
+            switch->Whimsicott | Flare Blitz @foeSlot1        d1=+0.58  d2=+1.29  vs Draco Meteor @foeSlot0 | Meteor Mash @foeSlot0
+            Sacred Sword @foeSlot1 | switch->Thundurus        d1=+0.26  d2=+1.26  vs Draco Meteor @foeSlot1 | Meteor Mash @foeSlot0
+            Protect | switch->Whimsicott                      d1=-0.46  d2=+1.15  vs Draco Meteor @foeSlot0 | Earthquake
+            X-Scissor @foeSlot1 | Protect                     d1=+0.73  d2=+1.08  vs Draco Meteor @foeSlot1 | Meteor Mash @foeSlot0
+            Sacred Sword @foeSlot0 | Protect                  d1=+0.69  d2=+1.03  vs Draco Meteor @foeSlot0 | Earthquake
+            X-Scissor @foeSlot0 | Protect                     d1=+0.69  d2=+1.03  vs Draco Meteor @foeSlot0 | Earthquake
+            Rock Slide | switch->Thundurus                    d1=+0.69  d2=+1.01  vs Draco Meteor @foeSlot0 | Earthquake
+            Sacred Sword @foeSlot0 | switch->Thundurus        d1=+0.29  d2=+1.00  vs Draco Meteor @foeSlot0 | Earthquake
+            X-Scissor @foeSlot0 | switch->Thundurus           d1=+0.29  d2=+1.00  vs Draco Meteor @foeSlot0 | Earthquake
+            switch->Thundurus | Flare Blitz @foeSlot1         d1=+0.51  d2=+0.98  vs Draco Meteor @foeSlot0 | Meteor Mash @foeSlot0
+            switch->Thundurus | Earthquake                    d1=-0.55  d2=+0.78  vs Draco Meteor @foeSlot0 | Earthquake
+            Sacred Sword @foeSlot0 | switch->Whimsicott       d1=+0.54  d2=+0.67  vs Draco Meteor @foeSlot0 | Earthquake
+            X-Scissor @foeSlot0 | switch->Whimsicott          d1=+0.54  d2=+0.67  vs Draco Meteor @foeSlot0 | Earthquake
+            Rock Slide | switch->Whimsicott                   d1=+0.93  d2=+0.66  vs Draco Meteor @foeSlot0 | Earthquake
+            X-Scissor @foeSlot1 | switch->Whimsicott          d1=+0.58  d2=+0.54  vs Draco Meteor @foeSlot1 | Meteor Mash @foeSlot0
+            switch->Thundurus | Flare Blitz @foeSlot0         d1=-0.73  d2=+0.46  vs Draco Meteor @foeSlot0 | Earthquake
+            switch->Thundurus | Rock Slide                    d1=-0.67  d2=+0.33  vs Draco Meteor @foeSlot0 | Earthquake
+            X-Scissor @foeSlot1 | Rock Slide                  d1=+1.36  d2=+0.31  vs Draco Meteor @foeSlot1 | Meteor Mash @foeSlot0
+            X-Scissor @foeSlot1 | Flare Blitz @foeSlot0       d1=+1.27  d2=+0.31  vs Draco Meteor @foeSlot1 | Meteor Mash @foeSlot0
+            X-Scissor @foeSlot1 | Flare Blitz @foeSlot1       d1=+0.73  d2=+0.31  vs Draco Meteor @foeSlot1 | Meteor Mash @foeSlot0
+            X-Scissor @foeSlot1 | Earthquake                  d1=+0.73  d2=+0.31  vs Draco Meteor @foeSlot1 | Meteor Mash @foeSlot0
+            switch->Whimsicott | Flare Blitz @foeSlot0        d1=-0.42  d2=+0.26  vs Draco Meteor @foeSlot0 | Zen Headbutt @foeSlot1
+            Rock Slide | Earthquake                           d1=+2.26  d2=+0.16  vs Draco Meteor @foeSlot0 | Meteor Mash @foeSlot0
+            Sacred Sword @foeSlot0 | Earthquake               d1=+1.66  d2=+0.16  vs Draco Meteor @foeSlot0 | Earthquake
+            X-Scissor @foeSlot0 | Earthquake                  d1=+1.66  d2=+0.16  vs Draco Meteor @foeSlot0 | Earthquake
+            switch->Whimsicott | Rock Slide                   d1=-0.36  d2=+0.16  vs Draco Meteor @foeSlot0 | Zen Headbutt @foeSlot1
+            Rock Slide | Flare Blitz @foeSlot0                d1=+1.08  d2=+0.00  vs Draco Meteor @foeSlot0 | Earthquake
+            Sacred Sword @foeSlot0 | Flare Blitz @foeSlot0    d1=+0.69  d2=+0.00  vs Draco Meteor @foeSlot0 | Earthquake
+            X-Scissor @foeSlot0 | Flare Blitz @foeSlot0       d1=+0.69  d2=+0.00  vs Draco Meteor @foeSlot0 | Earthquake
+            X-Scissor @foeSlot1 | switch->Thundurus           d1=+0.26  d2=-0.01  vs Draco Meteor @foeSlot1 | Meteor Mash @foeSlot0
+            Rock Slide | Rock Slide                           d1=+1.25  d2=-0.05  vs Draco Meteor @foeSlot0 | Earthquake
+            Sacred Sword @foeSlot0 | Rock Slide               d1=+0.85  d2=-0.45  vs Draco Meteor @foeSlot0 | Earthquake
+            X-Scissor @foeSlot0 | Rock Slide                  d1=+0.85  d2=-0.45  vs Draco Meteor @foeSlot0 | Earthquake
+            Rock Slide | Protect                              d1=+1.08  d2=-0.72  vs Draco Meteor @foeSlot0 | Earthquake
+[  turn 4] P1 Sacred Sword @foeSlot1 | Protect                 || P2 Draco Meteor @foeSlot1 | Meteor Mash @foeSlot0    rng[accuracy:2 crit:2 damage_roll:2 secondary:1 stall:1]
+           P1 active: Terrakion 4% [atk+4]  | bench: Darmanitan FNT, Whimsicott 69%, Thundurus
+           P2 active: Hydreigon 100% [spa-2]  | bench: Metagross FNT, Latios FNT, Garchomp FNT
+[  switch] top-50 depth-2 in 0.0s (cache: 0 entries)
+         profile: branch=2x1 pairs=62 recurse=2 clone=2ms apply=1ms ser=2ms enum=0ms eval=0ms cache=0h/0m
+         -> pass | switch->Whimsicott                         d1=+0.04  d2=+1.73  vs (no request)
+            pass | switch->Thundurus                          d1=-0.27  d2=+1.73  vs (no request)
+[  switch] P1 pass | switch->Whimsicott                        || P2 (no request)                                      rng[]
+           P1 active: Terrakion 4% [atk+4]  Whimsicott 69%  | bench: Darmanitan FNT, Thundurus
+           P2 active: Hydreigon 100% [spa-2]  | bench: Metagross FNT, Latios FNT, Garchomp FNT
+[ picking] top-50 depth-2 in 0.2s (cache: 0 entries)
+         profile: branch=29x2 pairs=759 recurse=37 clone=38ms apply=58ms ser=28ms enum=1ms eval=0ms cache=0h/0m
+         -> Rock Slide | Giga Drain @foeSlot0                 d1=+1.73  d2=+inf  vs Draco Meteor @foeSlot0 | pass
+            Rock Slide | Beat Up @foeSlot0                    d1=+1.73  d2=+inf  vs Draco Meteor @foeSlot0 | pass
+            Rock Slide | Tailwind                             d1=+1.73  d2=+inf  vs Draco Meteor @foeSlot0 | pass
+            Rock Slide | Sunny Day                            d1=+1.73  d2=+inf  vs Draco Meteor @foeSlot0 | pass
+            Rock Slide | switch->Thundurus                    d1=+1.73  d2=+inf  vs Draco Meteor @foeSlot0 | pass
+            Protect | Giga Drain @foeSlot0                    d1=+0.35  d2=+1.28  vs Draco Meteor @foeSlot1 | pass
+            Protect | switch->Thundurus                       d1=+0.18  d2=+1.26  vs Draco Meteor @foeSlot1 | pass
+            Sacred Sword @foeSlot0 | Giga Drain @foeSlot0     d1=+1.73  d2=+1.18  vs Draco Meteor @foeSlot0 | pass
+            X-Scissor @foeSlot0 | Giga Drain @foeSlot0        d1=+1.73  d2=+1.18  vs Draco Meteor @foeSlot0 | pass
+            Protect | Beat Up @foeSlot0                       d1=+0.18  d2=+1.17  vs Draco Meteor @foeSlot1 | pass
+            Protect | Beat Up @allySlot0                      d1=+0.18  d2=+1.17  vs Draco Meteor @foeSlot1 | pass
+            Protect | Tailwind                                d1=+0.18  d2=+1.17  vs Draco Meteor @foeSlot1 | pass
+            Protect | Sunny Day                               d1=+0.18  d2=+1.17  vs Draco Meteor @foeSlot1 | pass
+            Sacred Sword @foeSlot0 | switch->Thundurus        d1=+1.73  d2=+0.85  vs Draco Meteor @foeSlot0 | pass
+            X-Scissor @foeSlot0 | switch->Thundurus           d1=+1.73  d2=+0.85  vs Draco Meteor @foeSlot0 | pass
+            Sacred Sword @foeSlot0 | Beat Up @foeSlot0        d1=+1.73  d2=+0.79  vs Draco Meteor @foeSlot0 | pass
+            X-Scissor @foeSlot0 | Beat Up @foeSlot0           d1=+1.73  d2=+0.79  vs Draco Meteor @foeSlot0 | pass
+            Sacred Sword @foeSlot0 | Beat Up @allySlot0       d1=+1.73  d2=+0.76  vs Draco Meteor @foeSlot0 | pass
+            Sacred Sword @foeSlot0 | Tailwind                 d1=+1.73  d2=+0.76  vs Draco Meteor @foeSlot0 | pass
+            Sacred Sword @foeSlot0 | Sunny Day                d1=+1.73  d2=+0.76  vs Draco Meteor @foeSlot0 | pass
+            X-Scissor @foeSlot0 | Beat Up @allySlot0          d1=+1.73  d2=+0.76  vs Draco Meteor @foeSlot0 | pass
+            X-Scissor @foeSlot0 | Tailwind                    d1=+1.73  d2=+0.76  vs Draco Meteor @foeSlot0 | pass
+            X-Scissor @foeSlot0 | Sunny Day                   d1=+1.73  d2=+0.76  vs Draco Meteor @foeSlot0 | pass
+            Rock Slide | Beat Up @allySlot0                   d1=+1.73  d2=+0.59  vs Draco Meteor @foeSlot0 | pass
+            switch->Thundurus | Giga Drain @foeSlot0          d1=-0.09  d2=+0.52  vs Draco Meteor @foeSlot0 | pass
+            switch->Thundurus | Beat Up @foeSlot0             d1=-0.26  d2=+0.45  vs Draco Meteor @foeSlot0 | pass
+            switch->Thundurus | Tailwind                      d1=-0.26  d2=+0.33  vs Draco Meteor @foeSlot0 | pass
+            switch->Thundurus | Sunny Day                     d1=-0.26  d2=+0.33  vs Draco Meteor @foeSlot0 | pass
+            switch->Thundurus | Beat Up @allySlot0            d1=-0.26  d2=+0.29  vs Draco Meteor @foeSlot0 | pass
+[  turn 5] P1 Rock Slide | Giga Drain @foeSlot0                || P2 Draco Meteor @foeSlot0 | pass                     rng[accuracy:2 crit:2 damage_roll:2 redirect_target:2 secondary:1]
+           P1 active: Whimsicott 80%  | bench: Terrakion FNT, Darmanitan FNT, Thundurus
+           P2 active: Hydreigon 82% [spa-4]  | bench: Metagross FNT, Latios FNT, Garchomp FNT
+[  switch] top-50 depth-2 in 0.0s (cache: 0 entries)
+         profile: branch=1x1 pairs=28 recurse=1 clone=1ms apply=1ms ser=1ms enum=0ms eval=0ms cache=0h/0m
+         -> switch->Thundurus | pass                          d1=-0.02  d2=+1.06  vs (no request)
+[  switch] P1 switch->Thundurus | pass                         || P2 (no request)                                      rng[]
+           P1 active: Thundurus 100%  Whimsicott 80%  | bench: Darmanitan FNT, Terrakion FNT
+           P2 active: Hydreigon 82% [spa-4]  | bench: Metagross FNT, Latios FNT, Garchomp FNT
+[ picking] top-50 depth-2 in 0.2s (cache: 0 entries)
+         profile: branch=25x2 pairs=590 recurse=25 clone=23ms apply=54ms ser=18ms enum=1ms eval=0ms cache=0h/0m
+         -> Thunderbolt @foeSlot0 | Giga Drain @foeSlot0      d1=+1.06  d2=+1.52  vs Draco Meteor @foeSlot1 | pass
+            Grass Knot @foeSlot0 | Giga Drain @foeSlot0       d1=+0.97  d2=+1.52  vs Draco Meteor @foeSlot1 | pass
+            Thunderbolt @foeSlot0 | Tailwind                  d1=+0.89  d2=+1.41  vs Draco Meteor @foeSlot1 | pass
+            Thunderbolt @foeSlot0 | Sunny Day                 d1=+0.89  d2=+1.41  vs Draco Meteor @foeSlot1 | pass
+            Dark Pulse @foeSlot0 | Giga Drain @foeSlot0       d1=+0.93  d2=+1.21  vs Draco Meteor @foeSlot1 | pass
+            Thunderbolt @foeSlot0 | Beat Up @foeSlot0         d1=+0.89  d2=+1.08  vs Draco Meteor @foeSlot1 | pass
+            Psychic @foeSlot0 | Giga Drain @foeSlot0          d1=+0.77  d2=+1.06  vs Draco Meteor @foeSlot1 | pass
+            Dark Pulse @foeSlot0 | Tailwind                   d1=+0.77  d2=+1.05  vs Draco Meteor @foeSlot1 | pass
+            Dark Pulse @foeSlot0 | Sunny Day                  d1=+0.77  d2=+1.05  vs Draco Meteor @foeSlot1 | pass
+            Grass Knot @foeSlot0 | Beat Up @foeSlot0          d1=+0.81  d2=+0.99  vs Draco Meteor @foeSlot1 | pass
+            Grass Knot @foeSlot0 | Tailwind                   d1=+0.81  d2=+0.99  vs Draco Meteor @foeSlot1 | pass
+            Grass Knot @foeSlot0 | Sunny Day                  d1=+0.81  d2=+0.99  vs Draco Meteor @foeSlot1 | pass
+            Thunderbolt @foeSlot0 | Beat Up @allySlot0        d1=+0.89  d2=+0.98  vs Draco Meteor @foeSlot1 | pass
+            Psychic @foeSlot0 | Beat Up @foeSlot0             d1=+0.61  d2=+0.95  vs Draco Meteor @foeSlot1 | pass
+            Dark Pulse @foeSlot0 | Beat Up @foeSlot0          d1=+0.77  d2=+0.95  vs Draco Meteor @foeSlot1 | pass
+            Grass Knot @foeSlot0 | Beat Up @allySlot0         d1=+0.81  d2=+0.89  vs Draco Meteor @foeSlot1 | pass
+            Dark Pulse @foeSlot0 | Beat Up @allySlot0         d1=+0.77  d2=+0.84  vs Draco Meteor @foeSlot1 | pass
+            Psychic @foeSlot0 | Beat Up @allySlot0            d1=+0.61  d2=+0.84  vs Draco Meteor @foeSlot1 | pass
+            Psychic @foeSlot0 | Tailwind                      d1=+0.61  d2=+0.77  vs Draco Meteor @foeSlot1 | pass
+            Psychic @foeSlot0 | Sunny Day                     d1=+0.61  d2=+0.77  vs Draco Meteor @foeSlot1 | pass
+            Dark Pulse @allySlot1 | Giga Drain @foeSlot0      d1=+0.77  d2=+0.58  vs Draco Meteor @foeSlot1 | pass
+            Dark Pulse @allySlot1 | Tailwind                  d1=+0.61  d2=+0.36  vs Draco Meteor @foeSlot1 | pass
+            Dark Pulse @allySlot1 | Sunny Day                 d1=+0.61  d2=+0.36  vs Draco Meteor @foeSlot1 | pass
+            Dark Pulse @allySlot1 | Beat Up @foeSlot0         d1=+0.61  d2=+0.25  vs Draco Meteor @foeSlot1 | pass
+            Dark Pulse @allySlot1 | Beat Up @allySlot0        d1=+0.61  d2=+0.15  vs Draco Meteor @foeSlot1 | pass
+[  turn 7] P1 Thunderbolt @foeSlot0 | Giga Drain @foeSlot0     || P2 Draco Meteor @foeSlot1 | pass                     rng[accuracy:3 crit:3 damage_roll:3 secondary:2]
+           P1 active: Thundurus 100%  Whimsicott 53%  | bench: Darmanitan FNT, Terrakion FNT
+           P2 active: Hydreigon 37% [spa-6]  | bench: Metagross FNT, Latios FNT, Garchomp FNT
+[ picking] top-50 depth-2 in 0.2s (cache: 0 entries)
+         profile: branch=25x2 pairs=539 recurse=24 clone=23ms apply=53ms ser=19ms enum=1ms eval=0ms cache=0h/0m
+         -> Thunderbolt @foeSlot0 | Giga Drain @foeSlot0      d1=+1.53  d2=+inf  vs Draco Meteor @foeSlot0 | pass
+            Grass Knot @foeSlot0 | Giga Drain @foeSlot0       d1=+1.53  d2=+1.37  vs Draco Meteor @foeSlot0 | pass
+            Dark Pulse @foeSlot0 | Giga Drain @foeSlot0       d1=+1.20  d2=+1.33  vs Draco Meteor @foeSlot1 | pass
+            Psychic @foeSlot0 | Giga Drain @foeSlot0          d1=+1.05  d2=+1.33  vs Draco Meteor @foeSlot1 | pass
+            Grass Knot @foeSlot0 | Beat Up @foeSlot0          d1=+1.17  d2=+1.23  vs Draco Meteor @foeSlot1 | pass
+            Grass Knot @foeSlot0 | Tailwind                   d1=+1.17  d2=+1.23  vs Draco Meteor @foeSlot1 | pass
+            Grass Knot @foeSlot0 | Sunny Day                  d1=+1.17  d2=+1.23  vs Draco Meteor @foeSlot1 | pass
+            Thunderbolt @foeSlot0 | Beat Up @foeSlot0         d1=+1.16  d2=+1.23  vs Draco Meteor @foeSlot1 | pass
+            Thunderbolt @foeSlot0 | Tailwind                  d1=+1.16  d2=+1.23  vs Draco Meteor @foeSlot1 | pass
+            Thunderbolt @foeSlot0 | Sunny Day                 d1=+1.16  d2=+1.23  vs Draco Meteor @foeSlot1 | pass
+            Dark Pulse @foeSlot0 | Beat Up @foeSlot0          d1=+1.04  d2=+1.23  vs Draco Meteor @foeSlot1 | pass
+            Dark Pulse @foeSlot0 | Tailwind                   d1=+1.04  d2=+1.23  vs Draco Meteor @foeSlot1 | pass
+            Dark Pulse @foeSlot0 | Sunny Day                  d1=+1.04  d2=+1.23  vs Draco Meteor @foeSlot1 | pass
+            Psychic @foeSlot0 | Beat Up @foeSlot0             d1=+0.88  d2=+1.23  vs Draco Meteor @foeSlot1 | pass
+            Psychic @foeSlot0 | Tailwind                      d1=+0.88  d2=+1.23  vs Draco Meteor @foeSlot1 | pass
+            Psychic @foeSlot0 | Sunny Day                     d1=+0.88  d2=+1.23  vs Draco Meteor @foeSlot1 | pass
+            Grass Knot @foeSlot0 | Beat Up @allySlot0         d1=+1.17  d2=+1.15  vs Draco Meteor @foeSlot1 | pass
+            Thunderbolt @foeSlot0 | Beat Up @allySlot0        d1=+1.16  d2=+1.15  vs Draco Meteor @foeSlot1 | pass
+            Dark Pulse @foeSlot0 | Beat Up @allySlot0         d1=+1.04  d2=+1.15  vs Draco Meteor @foeSlot1 | pass
+            Psychic @foeSlot0 | Beat Up @allySlot0            d1=+0.88  d2=+1.15  vs Draco Meteor @foeSlot1 | pass
+            Dark Pulse @allySlot1 | Giga Drain @foeSlot0      d1=+1.05  d2=+1.00  vs Draco Meteor @foeSlot1 | pass
+            Dark Pulse @allySlot1 | Beat Up @foeSlot0         d1=+0.88  d2=+0.70  vs Draco Meteor @foeSlot1 | pass
+            Dark Pulse @allySlot1 | Tailwind                  d1=+0.88  d2=+0.68  vs Draco Meteor @foeSlot1 | pass
+            Dark Pulse @allySlot1 | Sunny Day                 d1=+0.88  d2=+0.68  vs Draco Meteor @foeSlot1 | pass
+            Dark Pulse @allySlot1 | Beat Up @allySlot0        d1=+0.88  d2=+0.60  vs Draco Meteor @foeSlot1 | pass
+[  turn 7] P1 Thunderbolt @foeSlot0 | Giga Drain @foeSlot0     || P2 Draco Meteor @foeSlot0 | pass                     rng[accuracy:3 crit:3 damage_roll:3 secondary:2]
+           P1 active: Thundurus 73%  Whimsicott 62%  | bench: Darmanitan FNT, Terrakion FNT
+           P2 active:   | bench: Hydreigon FNT, Metagross FNT, Latios FNT, Garchomp FNT
+
+battle ended on step 11. winner: P1. turn counter: 7
